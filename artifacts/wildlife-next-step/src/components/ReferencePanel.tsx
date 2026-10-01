@@ -13,7 +13,8 @@ export function ContactsPanel({ county }: { county: string }) {
         {list.map((contact) => (
           <article className="contact-card" key={contact.county} data-testid={`contact-card-${contact.county.toLowerCase().replaceAll(' ', '-')}`}>
             <span className="fiction-badge">Fictional example only</span>
-            <h4>{contact.county}</h4>
+            <h4>{contact.name}</h4>
+            <p><strong>County:</strong> {contact.county}</p>
             <p><strong>Specialty:</strong> {contact.specialty}</p>
             <p><strong>Number:</strong> {contact.number}</p>
             <p><strong>Hours:</strong> {contact.hours}</p>
