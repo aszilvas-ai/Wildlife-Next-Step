@@ -10,11 +10,10 @@ import { routeEncounter } from './logic/ruleEngine';
 
 type Screen = 'home' | 'form' | 'review' | 'result';
 
-const fields: Array<keyof Encounter> = ['county', 'localTime', 'afterDusk', 'animal', 'appearance', 'injury', 'parentSeen', 'actions'];
+const fields: Array<keyof Encounter> = ['county', 'timeOfDay', 'animal', 'appearance', 'injury', 'parentSeen', 'actions'];
 const fieldHelp: Record<keyof Encounter, string> = {
   county: 'County only. Do not enter a street, address, landmark, or exact location.',
-  localTime: 'Enter the local clock time for this fictional example, or mark it unknown. The app compares known times with fictional directory hours.',
-  afterDusk: 'Use only what the fictional scenario says. If it is unclear, choose “Not sure.”',
+  timeOfDay: 'Choose the closest time period. If it overlaps a contact’s opening or closing boundary, the app cannot confirm availability.',
   animal: 'This is a rough category for a fictional scenario, not a species identification.',
   appearance: 'Only select what the scenario tells you. Do not approach to check.',
   injury: 'Do not get closer to assess. “Not sure” is a valid answer.',
@@ -23,8 +22,7 @@ const fieldHelp: Record<keyof Encounter, string> = {
 };
 const fieldStepTitles: Record<keyof Encounter, string> = {
   county: 'Where in Indiana is this fictional example?',
-  localTime: 'What local time is this fictional example?',
-  afterDusk: 'Is the example after dusk?',
+  timeOfDay: 'What part of the day is it?',
   animal: 'What type of animal might it be?',
   appearance: 'What does the fictional scenario describe?',
   injury: 'Is a visible injury described?',
@@ -225,28 +223,6 @@ function FormFlow({
               {counties.map((county) => <option key={county} value={county}>{county} County</option>)}
             </select>
           </div>
-        ) : key === 'localTime' ? (
-          <div>
-            <label className="field-label" htmlFor="local-time">Local clock time</label>
-            <input
-              id="local-time"
-              className="field-control"
-              type="time"
-              value={encounter.localTime === 'Not sure' ? '' : encounter.localTime}
-              disabled={encounter.localTime === 'Not sure'}
-              onChange={(event) => update(event.target.value)}
-              data-testid="input-local-time"
-            />
-            <label className="time-unknown-control">
-              <input
-                type="checkbox"
-                checked={encounter.localTime === 'Not sure'}
-                onChange={(event) => update(event.target.checked ? 'Not sure' : '')}
-                data-testid="checkbox-time-unknown"
-              />
-              I’m not sure of the exact time
-            </label>
-          </div>
         ) : (
           <OptionGroup
             options={fieldOptions[key] as string[]}
@@ -309,7 +285,7 @@ function Result({
   const route = routeEncounter(encounter);
   const result = outcomeContent[route.outcome];
   const contact = getContactForCounty(encounter.county);
-  const hoursStatus = getListedHoursStatus(encounter.localTime, contact);
+  const hoursStatus = getListedHoursStatus(encounter.timeOfDay, contact);
   const alreadyContained = encounter.actions.includes('Already contained');
   return (
     <main className="shell flow-wrap">

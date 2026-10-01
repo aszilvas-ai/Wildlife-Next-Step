@@ -93,7 +93,7 @@ export function AfterHoursPlan({
 
       <details className="after-hours-why">
         <summary>Why am I seeing this?</summary>
-        <p>The app detected that the listed hours have ended by comparing the fictional example’s entered local time with this directory entry’s sample hours.</p>
+        <p>The app detected that the listed hours have ended because the selected time-of-day period falls entirely outside this directory entry’s sample hours.</p>
       </details>
     </section>
   );

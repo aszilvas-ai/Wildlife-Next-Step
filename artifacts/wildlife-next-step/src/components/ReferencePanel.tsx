@@ -22,7 +22,7 @@ export function ContactsPanel({
           <p><strong>Specialty:</strong> {contact.specialty}</p>
           <p><strong>Number:</strong> {contact.number}</p>
           <p><strong>Hours:</strong> {contact.hours}</p>
-          {hoursStatus === 'unknown' && <p className="call-note">The entered time could not be compared with the listed hours. Availability is not confirmed.</p>}
+          {hoursStatus === 'unknown' && <p className="call-note">This time period overlaps the listed hours or could not be compared. Availability is not confirmed.</p>}
         </article>
       </div>
       <p className="call-note">Call before transport. A listed contact does not guarantee availability.</p>

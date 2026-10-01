@@ -11,17 +11,19 @@ export type RoutingResult = {
  */
 export function routeEncounter(a: Encounter): RoutingResult {
   const injury = a.injury.toLowerCase();
-  const uncertain = [a.county, a.localTime, a.afterDusk, a.animal, a.appearance, a.injury, a.parentSeen].some((v) =>
-    !v || /not sure|unclear|unknown|other/.test(v.toLowerCase()),
+  const injuryReported = injury === 'visible bleeding' || injury === 'other visible injury';
+  const injuryUnclear = !['no visible injury', 'visible bleeding', 'other visible injury'].includes(injury);
+  const uncertain = [a.county, a.timeOfDay, a.animal, a.appearance, a.parentSeen].some((v) =>
+    !v || /not sure|uncertain|unclear|unknown|other/.test(v.toLowerCase()),
   );
   const conflictingActions = a.actions.some((action) =>
     /moved|touched|handled|already contained|other|not sure/i.test(action),
   );
 
-  if (injury !== 'no visible injury' || uncertain || conflictingActions) {
+  if (injuryReported || injuryUnclear || uncertain || conflictingActions) {
     return {
       outcome: 'professional',
-      reason: injury.includes('bleeding') || injury.includes('injury')
+      reason: injuryReported
         ? 'A visible injury is a reason to contact a licensed wildlife rehabilitator for directions rather than trying to assess or treat it yourself.'
         : 'Some details are uncertain or actions have already been taken. A licensed wildlife rehabilitator can give situation-specific directions.',
     };
@@ -31,7 +33,7 @@ export function routeEncounter(a: Encounter): RoutingResult {
     && /nearly full-sized/i.test(a.appearance)
     && /run, jump, and climb/i.test(a.appearance)
     && a.parentSeen === 'No'
-    && a.afterDusk === 'No';
+    && /early morning|morning|afternoon/i.test(a.timeOfDay);
   if (squirrelAdult) {
     return {
       outcome: 'observe',
@@ -41,7 +43,7 @@ export function routeEncounter(a: Encounter): RoutingResult {
 
   const youngSquirrelAtDusk = /squirrel/i.test(a.animal)
     && /young \/ baby/i.test(a.appearance)
-    && a.afterDusk === 'Yes'
+    && /dusk|evening|night/i.test(a.timeOfDay)
     && a.parentSeen === 'No'
     && a.injury === 'No visible injury';
   if (youngSquirrelAtDusk) {

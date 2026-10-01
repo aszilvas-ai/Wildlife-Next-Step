@@ -5,30 +5,34 @@ import { demos } from '../src/data/scenarios.ts';
 import { getContactForCounty, getListedHoursStatus } from '../src/logic/contactHours.ts';
 import { routeEncounter } from '../src/logic/ruleEngine.ts';
 
-test('listed hours open at the start and close at the end', () => {
+test('time-of-day ranges are compared conservatively with listed hours', () => {
   const monroeContact = getContactForCounty('Monroe');
+  const hamiltonContact = getContactForCounty('Hamilton');
 
-  assert.equal(getListedHoursStatus('09:59', monroeContact), 'closed');
-  assert.equal(getListedHoursStatus('10:00', monroeContact), 'open');
-  assert.equal(getListedHoursStatus('14:59', monroeContact), 'open');
-  assert.equal(getListedHoursStatus('15:00', monroeContact), 'closed');
+  assert.equal(getListedHoursStatus('Early morning (midnight–8 a.m.)', monroeContact), 'closed');
+  assert.equal(getListedHoursStatus('Morning (8 a.m.–noon)', monroeContact), 'unknown');
+  assert.equal(getListedHoursStatus('Afternoon (noon–5 p.m.)', monroeContact), 'unknown');
+  assert.equal(getListedHoursStatus('Dusk / evening (5–9 p.m.)', monroeContact), 'closed');
+  assert.equal(getListedHoursStatus('Night (9 p.m.–midnight)', monroeContact), 'closed');
+  assert.equal(getListedHoursStatus('Morning (8 a.m.–noon)', hamiltonContact), 'open');
+  assert.equal(getListedHoursStatus('Afternoon (noon–5 p.m.)', hamiltonContact), 'open');
 });
 
-test('invalid or missing clock time never implies the contact is open', () => {
+test('unknown or unrecognized time periods never imply the contact is open', () => {
   const contact = getContactForCounty('Marion');
 
   assert.equal(getListedHoursStatus('', contact), 'unknown');
-  assert.equal(getListedHoursStatus('25:00', contact), 'unknown');
+  assert.equal(getListedHoursStatus('Not sure', contact), 'unknown');
 });
 
-test('an unknown encounter time routes conservatively and does not claim hours ended', () => {
+test('an unknown time period routes conservatively and does not claim hours ended', () => {
   const scenario = demos.find((demo) => demo.id === 'bleeding-squirrel');
   assert.ok(scenario);
-  const unknownTime = { ...scenario.answers, localTime: 'Not sure' };
-  const contact = getContactForCounty(unknownTime.county);
+  const unknownPeriod = { ...scenario.answers, timeOfDay: 'Not sure' };
+  const contact = getContactForCounty(unknownPeriod.county);
 
-  assert.equal(getListedHoursStatus(unknownTime.localTime, contact), 'unknown');
-  assert.equal(routeEncounter(unknownTime).outcome, 'professional');
+  assert.equal(getListedHoursStatus(unknownPeriod.timeOfDay, contact), 'unknown');
+  assert.equal(routeEncounter(unknownPeriod).outcome, 'professional');
 });
 
 test('the after-hours demo routes an injury to professional guidance after close', () => {
@@ -36,8 +40,20 @@ test('the after-hours demo routes an injury to professional guidance after close
   assert.ok(scenario, 'after-hours demo scenario should exist');
   const contact = getContactForCounty(scenario.answers.county);
 
-  assert.equal(getListedHoursStatus(scenario.answers.localTime, contact), 'closed');
+  assert.equal(getListedHoursStatus(scenario.answers.timeOfDay, contact), 'closed');
   assert.equal(routeEncounter(scenario.answers).outcome, 'professional');
+});
+
+test('no visible injury is not described as an injury when another answer requires guidance', () => {
+  const scenario = demos.find((demo) => demo.id === 'healthy-squirrel');
+  assert.ok(scenario);
+  assert.equal(routeEncounter(scenario.answers).outcome, 'observe');
+
+  const uncertainCase = { ...scenario.answers, parentSeen: 'Not sure' };
+  const result = routeEncounter(uncertainCase);
+  assert.equal(result.outcome, 'professional');
+  assert.match(result.reason, /Some details are uncertain/);
+  assert.doesNotMatch(result.reason, /visible injury/i);
 });
 
 test('the current directory exposes no fictional after-hours service as confirmed', () => {
