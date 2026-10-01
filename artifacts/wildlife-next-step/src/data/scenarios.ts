@@ -1,6 +1,7 @@
 export type Encounter = {
   county: string;
-  timeOfDay: string;
+  localTime: string;
+  afterDusk: string;
   animal: string;
   appearance: string;
   injury: string;
@@ -19,7 +20,8 @@ export type DemoScenario = {
 
 export const emptyEncounter: Encounter = {
   county: '',
-  timeOfDay: '',
+  localTime: '',
+  afterDusk: '',
   animal: '',
   appearance: '',
   injury: '',
@@ -49,7 +51,7 @@ export const demos: DemoScenario[] = [
     label: 'Squirrel moving normally',
     description: 'Nearly full-sized, fluffy-tailed, active, with no visible injury.',
     answers: {
-      county: 'Marion', timeOfDay: 'Afternoon', animal: 'Squirrel',
+      county: 'Marion', localTime: '14:00', afterDusk: 'No', animal: 'Squirrel',
       appearance: 'Nearly full-sized; fluffy tail; can run, jump, and climb',
       injury: 'No visible injury', parentSeen: 'No',
       actions: ['Observed from a distance'],
@@ -60,7 +62,7 @@ export const demos: DemoScenario[] = [
     label: 'Squirrel with visible bleeding',
     description: 'A fictional example where visible injury means ask a professional.',
     answers: {
-      county: 'Monroe', timeOfDay: 'Morning', animal: 'Squirrel',
+      county: 'Monroe', localTime: '11:00', afterDusk: 'Not sure', animal: 'Squirrel',
       appearance: 'Small; brown fur; details uncertain',
       injury: 'Visible bleeding', parentSeen: 'Not sure',
       actions: ['Kept people and pets away'],
@@ -71,16 +73,27 @@ export const demos: DemoScenario[] = [
     label: 'Young squirrel at dusk',
     description: 'A young animal remains after dusk; professional advice comes first.',
     answers: {
-      county: 'Hamilton', timeOfDay: 'Dusk / evening', animal: 'Squirrel',
+      county: 'Hamilton', localTime: '19:30', afterDusk: 'Yes', animal: 'Squirrel',
       appearance: 'Young / baby; eyes open',
       injury: 'No visible injury', parentSeen: 'No',
       actions: ['Observed from a distance'],
     },
   },
+  {
+    id: 'after-hours-bleeding',
+    label: 'After-hours scenario',
+    description: 'A fictional bleeding squirrel report after the listed contact hours have ended.',
+    answers: {
+      county: 'Monroe', localTime: '19:30', afterDusk: 'Yes', animal: 'Squirrel',
+      appearance: 'Small; brown fur; details uncertain',
+      injury: 'Visible bleeding', parentSeen: 'Not sure',
+      actions: ['Kept people and pets away'],
+    },
+  },
 ];
 
 export const fieldOptions = {
-  timeOfDay: ['Morning', 'Afternoon', 'Dusk / evening', 'Night', 'Not sure'],
+  afterDusk: ['Yes', 'No', 'Not sure'],
   animal: ['Squirrel', 'Rabbit / hare', 'Bird', 'Raccoon', 'Other mammal', 'Unknown'],
   appearance: [
     'Nearly full-sized; fluffy tail; can run, jump, and climb',
@@ -105,7 +118,8 @@ export const fieldOptions = {
 
 export const fieldTitles: Record<keyof Encounter, string> = {
   county: 'Indiana county',
-  timeOfDay: 'Time of day',
+  localTime: 'Local time',
+  afterDusk: 'After dusk?',
   animal: 'Likely animal type',
   appearance: 'Size and appearance',
   injury: 'Visible injury',

@@ -1,25 +1,29 @@
 import { ExternalLink } from 'lucide-react';
 import { citations } from '../data/citations';
-import { fictionalContacts, genericContact } from '../data/contacts';
+import type { FictionalContact } from '../data/contacts';
+import type { ListedHoursStatus } from '../logic/contactHours';
 
-export function ContactsPanel({ county }: { county: string }) {
-  const matching = fictionalContacts.filter((contact) => contact.county.toLowerCase().startsWith(county.toLowerCase()));
-  const list = matching.length ? matching : [genericContact];
+export function ContactsPanel({
+  contact,
+  hoursStatus,
+}: {
+  contact: FictionalContact;
+  hoursStatus: ListedHoursStatus;
+}) {
   return (
     <section className="result-panel" aria-labelledby="contacts-title">
       <h3 id="contacts-title">Fictional contact examples</h3>
       <p>These are invented class-directory entries, not real providers. The phone numbers and hours are fictional and must not be used for real help.</p>
       <div className="contact-grid">
-        {list.map((contact) => (
-          <article className="contact-card" key={contact.county} data-testid={`contact-card-${contact.county.toLowerCase().replaceAll(' ', '-')}`}>
-            <span className="fiction-badge">Fictional example only</span>
-            <h4>{contact.name}</h4>
-            <p><strong>County:</strong> {contact.county}</p>
-            <p><strong>Specialty:</strong> {contact.specialty}</p>
-            <p><strong>Number:</strong> {contact.number}</p>
-            <p><strong>Hours:</strong> {contact.hours}</p>
-          </article>
-        ))}
+        <article className="contact-card" data-testid={`contact-card-${contact.county.toLowerCase().replaceAll(' ', '-')}`}>
+          <span className="fiction-badge">Fictional example only</span>
+          <h4>{contact.name}</h4>
+          <p><strong>County:</strong> {contact.county}</p>
+          <p><strong>Specialty:</strong> {contact.specialty}</p>
+          <p><strong>Number:</strong> {contact.number}</p>
+          <p><strong>Hours:</strong> {contact.hours}</p>
+          {hoursStatus === 'unknown' && <p className="call-note">The entered time could not be compared with the listed hours. Availability is not confirmed.</p>}
+        </article>
       </div>
       <p className="call-note">Call before transport. A listed contact does not guarantee availability.</p>
     </section>

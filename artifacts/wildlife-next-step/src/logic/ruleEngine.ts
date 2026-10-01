@@ -11,7 +11,7 @@ export type RoutingResult = {
  */
 export function routeEncounter(a: Encounter): RoutingResult {
   const injury = a.injury.toLowerCase();
-  const uncertain = [a.county, a.timeOfDay, a.animal, a.appearance, a.injury, a.parentSeen].some((v) =>
+  const uncertain = [a.county, a.localTime, a.afterDusk, a.animal, a.appearance, a.injury, a.parentSeen].some((v) =>
     !v || /not sure|unclear|unknown|other/.test(v.toLowerCase()),
   );
   const conflictingActions = a.actions.some((action) =>
@@ -31,7 +31,7 @@ export function routeEncounter(a: Encounter): RoutingResult {
     && /nearly full-sized/i.test(a.appearance)
     && /run, jump, and climb/i.test(a.appearance)
     && a.parentSeen === 'No'
-    && !/dusk|evening|night/i.test(a.timeOfDay);
+    && a.afterDusk === 'No';
   if (squirrelAdult) {
     return {
       outcome: 'observe',
@@ -41,7 +41,7 @@ export function routeEncounter(a: Encounter): RoutingResult {
 
   const youngSquirrelAtDusk = /squirrel/i.test(a.animal)
     && /young \/ baby/i.test(a.appearance)
-    && /dusk|evening|night/i.test(a.timeOfDay)
+    && a.afterDusk === 'Yes'
     && a.parentSeen === 'No'
     && a.injury === 'No visible injury';
   if (youngSquirrelAtDusk) {

@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import { ArrowLeft, ArrowRight, Check, ChevronRight, CircleAlert, RotateCcw, ShieldCheck } from 'lucide-react';
 import { SiteHeader, PrototypeNotice, Progress } from './components/SiteHeader';
+import { AfterHoursPlan } from './components/AfterHoursPlan';
 import { ContactsPanel, SourcesPanel } from './components/ReferencePanel';
 import { counties, demos, emptyEncounter, fieldOptions, fieldTitles, formatAnswer, type Encounter, type OutcomeId } from './data/scenarios';
+import { afterHoursContacts } from './data/contacts';
+import { getContactForCounty, getListedHoursStatus } from './logic/contactHours';
 import { routeEncounter } from './logic/ruleEngine';
 
 type Screen = 'home' | 'form' | 'review' | 'result';
 
-const fields: Array<keyof Encounter> = ['county', 'timeOfDay', 'animal', 'appearance', 'injury', 'parentSeen', 'actions'];
+const fields: Array<keyof Encounter> = ['county', 'localTime', 'afterDusk', 'animal', 'appearance', 'injury', 'parentSeen', 'actions'];
 const fieldHelp: Record<keyof Encounter, string> = {
   county: 'County only. Do not enter a street, address, landmark, or exact location.',
-  timeOfDay: 'Choose the closest fit. If you are unsure, say so.',
+  localTime: 'Enter the local clock time for this fictional example, or mark it unknown. The app compares known times with fictional directory hours.',
+  afterDusk: 'Use only what the fictional scenario says. If it is unclear, choose “Not sure.”',
   animal: 'This is a rough category for a fictional scenario, not a species identification.',
   appearance: 'Only select what the scenario tells you. Do not approach to check.',
   injury: 'Do not get closer to assess. “Not sure” is a valid answer.',
@@ -19,7 +23,8 @@ const fieldHelp: Record<keyof Encounter, string> = {
 };
 const fieldStepTitles: Record<keyof Encounter, string> = {
   county: 'Where in Indiana is this fictional example?',
-  timeOfDay: 'What time of day is it?',
+  localTime: 'What local time is this fictional example?',
+  afterDusk: 'Is the example after dusk?',
   animal: 'What type of animal might it be?',
   appearance: 'What does the fictional scenario describe?',
   injury: 'Is a visible injury described?',
@@ -220,6 +225,28 @@ function FormFlow({
               {counties.map((county) => <option key={county} value={county}>{county} County</option>)}
             </select>
           </div>
+        ) : key === 'localTime' ? (
+          <div>
+            <label className="field-label" htmlFor="local-time">Local clock time</label>
+            <input
+              id="local-time"
+              className="field-control"
+              type="time"
+              value={encounter.localTime === 'Not sure' ? '' : encounter.localTime}
+              disabled={encounter.localTime === 'Not sure'}
+              onChange={(event) => update(event.target.value)}
+              data-testid="input-local-time"
+            />
+            <label className="time-unknown-control">
+              <input
+                type="checkbox"
+                checked={encounter.localTime === 'Not sure'}
+                onChange={(event) => update(event.target.checked ? 'Not sure' : '')}
+                data-testid="checkbox-time-unknown"
+              />
+              I’m not sure of the exact time
+            </label>
+          </div>
         ) : (
           <OptionGroup
             options={fieldOptions[key] as string[]}
@@ -281,6 +308,8 @@ function Result({
 }) {
   const route = routeEncounter(encounter);
   const result = outcomeContent[route.outcome];
+  const contact = getContactForCounty(encounter.county);
+  const hoursStatus = getListedHoursStatus(encounter.localTime, contact);
   const alreadyContained = encounter.actions.includes('Already contained');
   return (
     <main className="shell flow-wrap">
@@ -297,6 +326,11 @@ function Result({
           <h3>Why this route?</h3>
           <p>{route.reason}</p>
         </div>
+        {route.outcome === 'professional' && (
+          <p className="professional-guidance-message" role="note" data-testid="professional-guidance">
+            This situation needs professional guidance. The app cannot safely provide treatment instructions.
+          </p>
+        )}
         <div className="result-layout">
           <section className="result-panel" aria-labelledby="checklist-title">
             <h3 id="checklist-title">Next-step checklist</h3>
@@ -319,7 +353,15 @@ function Result({
             <p>Prioritize contacting a licensed professional immediately. Guidance here is non-treatment: minimize disturbance and keep people and pets away. Do not handle, feed, give water, use medicine, or take other treatment steps.</p>
           </div>
         )}
-        {route.outcome !== 'observe' && <div style={{ marginTop: 14 }}><ContactsPanel county={encounter.county} /></div>}
+        {route.outcome !== 'observe' && (
+          <div style={{ marginTop: 14 }}>
+            {hoursStatus === 'closed' ? (
+              <AfterHoursPlan contact={contact} alternateContacts={afterHoursContacts} />
+            ) : (
+              <ContactsPanel contact={contact} hoursStatus={hoursStatus} />
+            )}
+          </div>
+        )}
         <div style={{ marginTop: 14 }}><SourcesPanel /></div>
         <div className="result-actions">
           <button className="btn btn-primary" onClick={onRestart} data-testid="button-restart"><RotateCcw size={16} /> Start over</button>

@@ -101,6 +101,9 @@ button { cursor: pointer; }
 .field-label { display:block;font-weight:700;font-size:.9rem;margin:0 0 9px; }
 .field-control { width:100%;border:1px solid #cfc9ba;background:#fffdf7;color:#263d30;border-radius:12px;padding:13px 14px; }
 .field-control:focus { border-color:#477152; }
+.field-control:disabled { color:#737b7a;background:#eeece6; }
+.time-unknown-control { display:flex;align-items:center;gap:9px;margin-top:12px;color:#59685d;font-size:.87rem;font-weight:600; }
+.time-unknown-control input { width:17px;height:17px;accent-color:#31583f; }
 .field-error { color:#9b4337;font-size:.81rem;margin:8px 0 0; }
 .option-grid { display:grid;grid-template-columns:repeat(2,1fr);gap:10px; }
 .option-card { text-align:left;border:1px solid #d4cebe;background:#fffdf7;border-radius:14px;padding:14px 15px;color:#34483a;line-height:1.4; min-height:60px; }
@@ -137,6 +140,37 @@ button { cursor: pointer; }
 .citation-list a { color:#31583f;text-decoration-thickness:1px;text-underline-offset:3px; }
 .citation-note { margin-top:12px!important;font-size:.77rem!important;color:#7b8075!important; }
 .result-actions { display:flex;flex-wrap:wrap;gap:10px;margin-top:26px; }
+.professional-guidance-message { margin:16px 0 0;padding:15px 17px;border-left:4px solid #b98534;border-radius:0 13px 13px 0;background:#f4e9d5;color:#543f1d;font-weight:700;line-height:1.55; }
+.after-hours-card { margin:0;border:1px solid #c49a52;border-radius:20px;overflow:hidden;background:#f7f5ef;box-shadow:0 12px 30px rgba(37,56,75,.09); }
+.after-hours-header { display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start;padding:22px 23px;background:#263b50;color:#f8f3e7; }
+.after-hours-moon { width:42px;height:42px;border:1px solid rgba(236,195,111,.55);border-radius:50%;display:grid;place-items:center;background:rgba(221,177,89,.15);color:#edc46f; }
+.after-hours-eyebrow { color:#e4bd71;font-size:.67rem;font-weight:800;letter-spacing:.13em; }
+.after-hours-header h2 { margin:5px 0 8px;font:600 clamp(1.35rem,3vw,1.8rem)/1.15 var(--app-font-serif); }
+.after-hours-header p { margin:0;color:#e1e6e9;font-size:.9rem;line-height:1.6; }
+.after-hours-timeline { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;list-style:none;margin:0;padding:17px 20px;background:#e8ecec;border-bottom:1px solid #d2d9d8;counter-reset:afterstep; }
+.after-hours-timeline li { position:relative;display:flex;gap:8px;align-items:flex-start;min-width:0;color:#33475b;font-size:.76rem;font-weight:700;line-height:1.4;counter-increment:afterstep; }
+.after-hours-timeline li::before { content:counter(afterstep);flex:0 0 23px;width:23px;height:23px;display:grid;place-items:center;border-radius:50%;background:#d9b66d;color:#2b3f52;font-size:.7rem; }
+.after-hours-timeline li:not(:last-child)::after { content:"→";position:absolute;right:-4px;top:1px;color:#87949b;transform:translateX(50%); }
+.after-hours-section { padding:20px 22px;border-bottom:1px solid #e0ded5; }
+.after-hours-section h3 { margin:0 0 12px;color:#293d52;font:600 1.18rem var(--app-font-serif); }
+.after-hours-contact { padding:15px;border:1px solid #dad8d0;border-radius:14px;background:#fffdf7; }
+.after-hours-contact h4 { margin:0 0 8px;color:#283c50;font-size:.95rem; }
+.after-hours-contact p { margin:5px 0;color:#596873;font-size:.83rem;line-height:1.55; }
+.after-hours-phone { color:#263b50!important;font-size:1rem!important; }
+.after-hours-phone span { font-weight:800;letter-spacing:.02em; }
+.after-hours-actions { display:flex;flex-wrap:wrap;gap:9px;margin-top:12px; }
+.btn-phone { background:#293f56;color:#fffaf0; }
+.btn-phone:hover { background:#1f3247; }
+.btn-copy { border:1px solid #c9b073;background:#f5ebd2;color:#4c3c20; }
+.btn-copy:hover { background:#efe1bd; }
+.copy-status { min-height:1.2em;margin:6px 0 0!important;color:#35533c!important;font-size:.77rem!important; }
+.after-hours-message-note { margin:11px 0 0;color:#53636f;font-size:.83rem;line-height:1.6; }
+.after-hours-no-service { padding:13px 15px;border-left:3px solid #c49a52;border-radius:0 11px 11px 0;background:#f1ead9;color:#514b3c;font-size:.86rem;line-height:1.6; }
+.after-hours-alternatives { display:grid;gap:9px; }
+.after-hours-guidance { margin:0;padding-left:20px;display:grid;gap:8px;color:#50606b;font-size:.86rem;line-height:1.6; }
+.after-hours-why { padding:17px 22px 20px;color:#34495b; }
+.after-hours-why summary { width:fit-content;color:#34495b;font-size:.88rem;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer; }
+.after-hours-why p { margin:10px 0 0;color:#5b6870;font-size:.84rem;line-height:1.6; }
 .sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
 @media (max-width:760px) {
  .shell { width:min(100% - 30px, 560px); }
@@ -152,6 +186,11 @@ button { cursor: pointer; }
  .content-section { padding:46px 0; }
  .result-layout { grid-template-columns:1fr; }
  .contact-grid { grid-template-columns:1fr; }
+  .after-hours-timeline { grid-template-columns:repeat(2,minmax(0,1fr));row-gap:13px; }
+  .after-hours-timeline li::after { display:none; }
+  .after-hours-header { padding:19px 17px; }
+  .after-hours-section { padding:17px; }
+  .after-hours-why { padding:16px 17px 18px; }
  .footer { flex-direction:column; }
  .flow-wrap { padding-top:24px; }
 }
