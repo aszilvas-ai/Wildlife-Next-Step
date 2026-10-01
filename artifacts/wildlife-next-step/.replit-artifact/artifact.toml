@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Wildlife Next Step"
+description = "A school prototype that helps people understand safer next steps after finding wildlife, using fictional Indiana scenarios, conservative rules, and clear professional-help guidance."
+version = "1.0.0"
+id = "artifacts/wildlife-next-step"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23941
+
+[services.development]
+run = "pnpm --filter @workspace/wildlife-next-step run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/wildlife-next-step", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/wildlife-next-step/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23941"
+BASE_PATH = "/"
