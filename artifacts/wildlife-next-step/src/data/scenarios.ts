@@ -108,7 +108,7 @@ export const fieldOptions = {
     'Small / juvenile',
     'Unclear / not sure',
   ],
-  injury: ['No visible injury', 'Visible bleeding', 'Other visible injury', 'Not sure'],
+  injury: ['No visible injury', 'Visible bleeding', 'Serious injury', 'Other visible injury', 'Other urgent concern', 'Not sure'],
   parentSeen: ['Yes', 'No', 'Not sure'],
   actions: [
     'No action yet',

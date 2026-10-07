@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { directorySource, rehabilitators } from '../src/data/contacts.ts';
 import { demos, fieldOptions } from '../src/data/scenarios.ts';
-import { getRehabilitatorsForCounty, getVerifiedAfterHoursContacts } from '../src/logic/contactDirectory.ts';
+import { getRehabilitatorsForCounty, getVerifiedAfterHoursContacts, noConfirmedAfterHoursServiceMessage } from '../src/logic/contactDirectory.ts';
 import { isUrgentConcern, routeEncounter } from '../src/logic/ruleEngine.ts';
 
 test('the DNR directory lookup returns the published contacts for a selected county', () => {
@@ -32,13 +32,14 @@ test('no county-specific listing is invented when the DNR directory has no entry
 test('the official directory has no source-verified after-hours or 24-hour contacts in this snapshot', () => {
   assert.deepEqual(getVerifiedAfterHoursContacts('Monroe'), []);
   assert.ok(rehabilitators.every((contact) => !contact.verifiedAfterHoursAvailability));
+  assert.equal(noConfirmedAfterHoursServiceMessage, 'No confirmed after-hours wildlife service is available in this prototype.');
 });
 
 test('urgent concern routing is the same for every animal type', () => {
   const base = demos.find((demo) => demo.id === 'after-hours-bleeding')?.answers;
   assert.ok(base);
   for (const animal of fieldOptions.animal) {
-    for (const injury of ['Visible bleeding', 'Serious injury', 'Other urgent concern']) {
+    for (const injury of ['Visible bleeding', 'Serious injury', 'Other visible injury', 'Other urgent concern']) {
       const encounter = { ...base, animal, injury };
       assert.equal(isUrgentConcern(encounter), true, `${injury} should be urgent for ${animal}`);
       assert.equal(routeEncounter(encounter).outcome, 'professional');

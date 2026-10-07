@@ -5,7 +5,7 @@ import { RehabilitatorDirectory } from './components/RehabilitatorDirectory';
 import { SourcesPanel } from './components/ReferencePanel';
 import { demos, emptyEncounter, fieldOptions, fieldTitles, formatAnswer, type Encounter, type OutcomeId } from './data/scenarios';
 import { getRehabilitatorsForCounty } from './logic/contactDirectory';
-import { routeEncounter } from './logic/ruleEngine';
+import { isUrgentConcern, routeEncounter } from './logic/ruleEngine';
 
 type Screen = 'home' | 'form' | 'review' | 'result';
 
@@ -16,7 +16,7 @@ const fieldHelp: Record<FormField, string> = {
   timeOfDay: 'Choose the closest time period. It helps the practice route but does not confirm provider availability.',
   animal: 'This is a rough category for a fictional scenario, not a species identification.',
   appearance: 'Only select what the scenario tells you. Do not approach to check.',
-  injury: 'Do not get closer to assess. “Not sure” is a valid answer.',
+  injury: 'Do not get closer to assess. Select only a concern already described; “Not sure” is valid.',
   parentSeen: 'A parent may be nearby even if you have not seen one.',
   actions: 'Choose all that apply. Select “No action yet” if nothing has been done.',
 };
@@ -24,7 +24,7 @@ const fieldStepTitles: Record<FormField, string> = {
   timeOfDay: 'What part of the day is it?',
   animal: 'What type of animal might it be?',
   appearance: 'What does the fictional scenario describe?',
-  injury: 'Is a visible injury described?',
+  injury: 'Is bleeding, a serious injury, or another urgent concern described?',
   parentSeen: 'Was a parent animal seen?',
   actions: 'What has already happened?',
 };

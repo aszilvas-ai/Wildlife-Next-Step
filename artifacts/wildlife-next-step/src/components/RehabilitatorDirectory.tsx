@@ -3,7 +3,7 @@ import { Check, Copy, ExternalLink, Moon, Phone, MessageSquare } from 'lucide-re
 import { counties } from '../data/scenarios';
 import { directorySource, type RehabilitatorContact } from '../data/contacts';
 import { dnrResources } from '../data/citations';
-import { getVerifiedAfterHoursContacts } from '../logic/contactDirectory';
+import { getVerifiedAfterHoursContacts, noConfirmedAfterHoursServiceMessage } from '../logic/contactDirectory';
 
 function ProviderCard({ contact }: { contact: RehabilitatorContact }) {
   const [copyStatus, setCopyStatus] = useState('');
@@ -202,7 +202,7 @@ export function RehabilitatorDirectory({
                 </>
               ) : (
                 <p className="after-hours-no-service" role="note" data-testid="no-confirmed-after-hours-service">
-                  No confirmed after-hours wildlife service is available in this prototype.
+                  {noConfirmedAfterHoursServiceMessage}
                 </p>
               )}
               <p className="after-hours-message-note">

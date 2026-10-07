@@ -1,0 +1,1 @@
+- [Patch hunk anchors](patch-hunk-anchors.md) — exact top-level anchors and source-ordered hunks avoid repeated patch failures.

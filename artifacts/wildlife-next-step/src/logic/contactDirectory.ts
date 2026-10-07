@@ -1,5 +1,8 @@
 import { rehabilitators, type RehabilitatorContact } from '../data/contacts.ts';
 
+export const noConfirmedAfterHoursServiceMessage =
+  'No confirmed after-hours wildlife service is available in this prototype.';
+
 export function getRehabilitatorsForCounty(county: string): RehabilitatorContact[] {
   const normalizedCounty = county.trim().toLowerCase();
   if (!normalizedCounty) return [];
