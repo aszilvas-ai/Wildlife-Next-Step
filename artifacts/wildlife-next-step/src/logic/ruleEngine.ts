@@ -5,14 +5,31 @@ export type RoutingResult = {
   reason: string;
 };
 
+const urgentConcernAnswers = new Set([
+  'visible bleeding',
+  'serious injury',
+  'other visible injury',
+  'other urgent concern',
+]);
+
+export function isUrgentConcern(a: Pick<Encounter, 'injury'>): boolean {
+  return urgentConcernAnswers.has(a.injury.trim().toLowerCase());
+}
+
 /**
  * Conservative local rules only. This is not diagnosis, species identification,
  * veterinary guidance, or a substitute for a licensed rehabilitator.
  */
 export function routeEncounter(a: Encounter): RoutingResult {
   const injury = a.injury.toLowerCase();
-  const injuryReported = injury === 'visible bleeding' || injury === 'other visible injury';
-  const injuryUnclear = !['no visible injury', 'visible bleeding', 'other visible injury'].includes(injury);
+  const injuryReported = isUrgentConcern(a);
+  const injuryUnclear = ![
+    'no visible injury',
+    'visible bleeding',
+    'serious injury',
+    'other visible injury',
+    'other urgent concern',
+  ].includes(injury);
   const uncertain = [a.timeOfDay, a.animal, a.appearance, a.parentSeen].some((v) =>
     !v || /not sure|uncertain|unclear|unknown|other/.test(v.toLowerCase()),
   );
@@ -24,7 +41,7 @@ export function routeEncounter(a: Encounter): RoutingResult {
     return {
       outcome: 'professional',
       reason: injuryReported
-        ? 'A visible injury is a reason to contact a permitted wildlife rehabilitator for directions rather than trying to assess or treat it yourself.'
+        ? 'A reported injury or urgent concern is a reason to contact a permitted wildlife rehabilitator for directions rather than trying to assess or treat it yourself.'
         : 'Some details are uncertain or actions have already been taken. A permitted wildlife rehabilitator can give situation-specific directions.',
     };
   }

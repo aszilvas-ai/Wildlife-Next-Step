@@ -7,3 +7,10 @@ export function getRehabilitatorsForCounty(county: string): RehabilitatorContact
     contact.counties.some((listedCounty) => listedCounty.toLowerCase() === normalizedCounty),
   );
 }
+
+export function getVerifiedAfterHoursContacts(county: string): RehabilitatorContact[] {
+  return getRehabilitatorsForCounty(county).filter((contact) =>
+    contact.verifiedAfterHoursAvailability?.sourceUrl
+    && contact.verifiedAfterHoursAvailability.verifiedAt,
+  );
+}

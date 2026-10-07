@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { directorySource, rehabilitators } from '../src/data/contacts.ts';
-import { demos } from '../src/data/scenarios.ts';
-import { getRehabilitatorsForCounty } from '../src/logic/contactDirectory.ts';
-import { routeEncounter } from '../src/logic/ruleEngine.ts';
+import { demos, fieldOptions } from '../src/data/scenarios.ts';
+import { getRehabilitatorsForCounty, getVerifiedAfterHoursContacts } from '../src/logic/contactDirectory.ts';
+import { isUrgentConcern, routeEncounter } from '../src/logic/ruleEngine.ts';
 
 test('the DNR directory lookup returns the published contacts for a selected county', () => {
   const monroeContacts = getRehabilitatorsForCounty('Monroe');
@@ -27,6 +27,28 @@ test('county contact choices distinguish provider listings from distinct phone n
 test('no county-specific listing is invented when the DNR directory has no entry', () => {
   assert.deepEqual(getRehabilitatorsForCounty('Marion'), []);
   assert.deepEqual(getRehabilitatorsForCounty('Hamilton'), []);
+});
+
+test('the official directory has no source-verified after-hours or 24-hour contacts in this snapshot', () => {
+  assert.deepEqual(getVerifiedAfterHoursContacts('Monroe'), []);
+  assert.ok(rehabilitators.every((contact) => !contact.verifiedAfterHoursAvailability));
+});
+
+test('urgent concern routing is the same for every animal type', () => {
+  const base = demos.find((demo) => demo.id === 'after-hours-bleeding')?.answers;
+  assert.ok(base);
+  for (const animal of fieldOptions.animal) {
+    for (const injury of ['Visible bleeding', 'Serious injury', 'Other urgent concern']) {
+      const encounter = { ...base, animal, injury };
+      assert.equal(isUrgentConcern(encounter), true, `${injury} should be urgent for ${animal}`);
+      assert.equal(routeEncounter(encounter).outcome, 'professional');
+    }
+  }
+});
+
+test('no visible injury and uncertainty are not mislabeled as urgent injury reports', () => {
+  assert.equal(isUrgentConcern({ injury: 'No visible injury' }), false);
+  assert.equal(isUrgentConcern({ injury: 'Not sure' }), false);
 });
 
 test('an unknown time period routes conservatively without claiming contact hours ended', () => {

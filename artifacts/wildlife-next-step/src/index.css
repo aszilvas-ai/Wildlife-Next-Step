@@ -183,6 +183,12 @@ button { cursor: pointer; }
 .after-hours-resource a { display:inline-flex;align-items:center;gap:4px;width:fit-content;color:#31583f;font-weight:700;text-underline-offset:3px; }
 .after-hours-why a { display:inline-flex;align-items:center;gap:4px;color:#31583f;text-underline-offset:3px; }
 .after-hours-guidance { margin:0;padding-left:20px;display:grid;gap:8px;color:#50606b;font-size:.86rem;line-height:1.6; }
+.urgent-after-hours-entry { background:#fffaf0; }
+.urgent-after-hours-entry > .btn { margin-top:14px; }
+.urgent-after-hours-plan { margin-top:16px;padding:17px;border:1px solid #c49a52;border-radius:15px;background:#f4ead7; }
+.urgent-after-hours-plan h3 { margin:0 0 10px;color:#5a391f;font:600 1.28rem var(--app-font-serif); }
+.urgent-after-hours-plan .provider-grid { margin-top:13px; }
+.urgent-after-hours-limit { margin:13px 0 0;padding:13px 15px;border-left:4px solid #a64834;border-radius:0 11px 11px 0;background:#f5dfd7;color:#592b23;font-size:.88rem;font-weight:750;line-height:1.6; }
 .after-hours-why { padding:17px 22px 20px;color:#34495b; }
 .after-hours-why summary { width:fit-content;color:#34495b;font-size:.88rem;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer; }
 .after-hours-why p { margin:10px 0 0;color:#5b6870;font-size:.84rem;line-height:1.6; }

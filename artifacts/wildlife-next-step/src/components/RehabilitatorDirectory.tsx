@@ -3,6 +3,7 @@ import { Check, Copy, ExternalLink, Moon, Phone, MessageSquare } from 'lucide-re
 import { counties } from '../data/scenarios';
 import { directorySource, type RehabilitatorContact } from '../data/contacts';
 import { dnrResources } from '../data/citations';
+import { getVerifiedAfterHoursContacts } from '../logic/contactDirectory';
 
 function ProviderCard({ contact }: { contact: RehabilitatorContact }) {
   const [copyStatus, setCopyStatus] = useState('');
@@ -40,6 +41,12 @@ function ProviderCard({ contact }: { contact: RehabilitatorContact }) {
       {contact.organization && <p className="provider-organization">{contact.organization}</p>}
       <p><strong>Listed animal coverage:</strong> {contact.animals}</p>
       <p className="provider-method">{methodLabel}</p>
+      {contact.verifiedAfterHoursAvailability && (
+        <p className="provider-method" data-testid="verified-after-hours-status">
+          Confirmed {contact.verifiedAfterHoursAvailability.status} availability · verified {contact.verifiedAfterHoursAvailability.verifiedAt}{' '}
+          <a href={contact.verifiedAfterHoursAvailability.sourceUrl} target="_blank" rel="noreferrer">Source <ExternalLink size={12} aria-hidden="true" /></a>
+        </p>
+      )}
       <div className="provider-numbers">
         {contact.phoneNumbers.map((number, index) => {
           const digits = number.replace(/[^\d+]/g, '');
@@ -75,16 +82,20 @@ export function RehabilitatorDirectory({
   county,
   contacts,
   timeOfDay,
+  urgentConcern,
   onCountyChange,
 }: {
   county: string;
   contacts: RehabilitatorContact[];
   timeOfDay: string;
+  urgentConcern: boolean;
   onCountyChange: (county: string) => void;
 }) {
+  const [noAfterHoursResponse, setNoAfterHoursResponse] = useState(false);
   const isDarkPeriod = /early morning|dusk|evening|night/i.test(timeOfDay);
   const HeaderIcon = isDarkPeriod ? Moon : Phone;
   const uniqueNumberCount = new Set(contacts.flatMap((contact) => contact.phoneNumbers)).size;
+  const verifiedAfterHoursContacts = getVerifiedAfterHoursContacts(county);
 
   return (
     <section className="after-hours-card" aria-labelledby="rehabilitator-directory-title" data-testid="rehabilitator-directory">
@@ -113,7 +124,10 @@ export function RehabilitatorDirectory({
           id="rehabilitator-county"
           className="field-control county-lookup"
           value={county}
-          onChange={(event) => onCountyChange(event.target.value)}
+          onChange={(event) => {
+            setNoAfterHoursResponse(false);
+            onCountyChange(event.target.value);
+          }}
           data-testid="select-rehabilitator-county"
         >
           <option value="">Choose a county</option>
@@ -151,6 +165,57 @@ export function RehabilitatorDirectory({
           <p className="after-hours-message-note">
               Use only the call or text method shown on the provider’s listing. Confirm that they handle this animal and situation before transport. If you leave a message, include the county, animal type, visible concern, and an adult’s callback number. A callback or acceptance is not guaranteed.
           </p>
+        </section>
+      )}
+
+      {urgentConcern && (
+        <section className="after-hours-section urgent-after-hours-entry" aria-labelledby="urgent-after-hours-entry-title" data-testid="urgent-after-hours-entry">
+          <h3 id="urgent-after-hours-entry-title">Urgent concern after hours?</h3>
+          {county ? (
+            <>
+              <p className="after-hours-message-note">For visible bleeding, a serious injury, or another urgent concern, first review the county listings above. Mark this if it is after hours and you cannot reach a rehabilitator.</p>
+              <button
+                className="btn btn-primary"
+                type="button"
+                aria-expanded={noAfterHoursResponse}
+                aria-controls="urgent-after-hours-plan"
+                onClick={() => setNoAfterHoursResponse((shown) => !shown)}
+                data-testid="button-urgent-after-hours-plan"
+              >
+                {noAfterHoursResponse ? 'Hide urgent after-hours plan' : 'I can’t reach a rehabilitator after hours'}
+              </button>
+            </>
+          ) : (
+            <p className="after-hours-message-note">Choose a county above to review local contact options. Then mark this if it is after hours and you cannot reach a rehabilitator.</p>
+          )}
+          {noAfterHoursResponse && county && (
+            <section className="urgent-after-hours-plan" id="urgent-after-hours-plan" aria-labelledby="urgent-after-hours-plan-title" data-testid="urgent-after-hours-plan">
+              <h3 id="urgent-after-hours-plan-title">Urgent After-Hours Plan</h3>
+              {verifiedAfterHoursContacts.length > 0 ? (
+                <>
+                  <p className="after-hours-message-note">These county listings include source-verified after-hours availability. Check the listed animal coverage and contact method.</p>
+                  <div className="provider-grid">
+                    {verifiedAfterHoursContacts.map((contact) => (
+                      <ProviderCard key={`urgent-${contact.name}-${contact.phoneNumbers.join('-')}`} contact={contact} />
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <p className="after-hours-no-service" role="note" data-testid="no-confirmed-after-hours-service">
+                  No confirmed after-hours wildlife service is available in this prototype.
+                </p>
+              )}
+              <p className="after-hours-message-note">
+                Use a Call or Text control in the county listing above, following the contact method shown and choosing a rehabilitator whose listed animal coverage fits. If voicemail is available, leave a brief message with the county, animal type, concern seen from a safe distance, and an adult’s callback number. A response is not guaranteed.
+              </p>
+              <p className="urgent-after-hours-limit" role="note">
+                This app cannot diagnose the animal, guarantee help is available, or determine whether waiting is safe.
+              </p>
+              <p className="after-hours-message-note">
+                This plan gives no feeding, medication, medical, or improvised treatment instructions. Do not attempt to treat the animal.
+              </p>
+            </section>
+          )}
         </section>
       )}
 

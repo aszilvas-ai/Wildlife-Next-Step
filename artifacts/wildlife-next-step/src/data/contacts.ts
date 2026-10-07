@@ -5,6 +5,11 @@ export type RehabilitatorContact = {
   phoneNumbers: string[];
   contactMethod?: 'text only' | 'phone calls only' | 'text preferred' | 'call or text for address';
   organization?: string;
+  verifiedAfterHoursAvailability?: {
+    status: 'after-hours' | '24-hour';
+    sourceUrl: string;
+    verifiedAt: string;
+  };
 };
 
 export const directorySource = {

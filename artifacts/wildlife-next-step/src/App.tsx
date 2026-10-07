@@ -275,6 +275,7 @@ function Result({
   const route = routeEncounter(encounter);
   const result = outcomeContent[route.outcome];
   const contacts = encounter.county ? getRehabilitatorsForCounty(encounter.county) : [];
+  const urgentConcern = isUrgentConcern(encounter);
   const alreadyContained = encounter.actions.includes('Already contained');
   return (
     <main className="shell flow-wrap">
@@ -324,6 +325,7 @@ function Result({
               county={encounter.county}
               contacts={contacts}
               timeOfDay={encounter.timeOfDay}
+              urgentConcern={urgentConcern}
               onCountyChange={onCountyChange}
             />
           </div>
