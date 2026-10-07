@@ -12,7 +12,7 @@ export const citations = [
   {
     label: 'Indiana DNR — Permitted wildlife rehabilitators',
     url: 'https://www.in.gov/dnr/fish-and-wildlife/wildlife-resources/orphaned-and-injured-animals/wildlife-rehabilitators',
-    note: 'Official directory for finding real providers; the app’s sample contacts are fictional.',
+    note: 'Official permitted-rehabilitator directory. The page listed a September 29, 2026 update when these contact records were checked.',
   },
   {
     label: 'Humane Society of the United States — Find a wildlife rehabilitator',

@@ -79,8 +79,8 @@ export const demos: DemoScenario[] = [
   },
   {
     id: 'after-hours-bleeding',
-    label: 'After-hours scenario',
-    description: 'A fictional bleeding squirrel report after the listed contact hours have ended.',
+    label: 'Evening injury scenario',
+    description: 'A fictional evening scenario; the official directory does not publish provider hours.',
     answers: {
       county: 'Monroe', timeOfDay: 'Dusk / evening (5–9 p.m.)', animal: 'Squirrel',
       appearance: 'Small; brown fur; details uncertain',

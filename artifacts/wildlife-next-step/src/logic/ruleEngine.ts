@@ -13,7 +13,7 @@ export function routeEncounter(a: Encounter): RoutingResult {
   const injury = a.injury.toLowerCase();
   const injuryReported = injury === 'visible bleeding' || injury === 'other visible injury';
   const injuryUnclear = !['no visible injury', 'visible bleeding', 'other visible injury'].includes(injury);
-  const uncertain = [a.county, a.timeOfDay, a.animal, a.appearance, a.parentSeen].some((v) =>
+  const uncertain = [a.timeOfDay, a.animal, a.appearance, a.parentSeen].some((v) =>
     !v || /not sure|uncertain|unclear|unknown|other/.test(v.toLowerCase()),
   );
   const conflictingActions = a.actions.some((action) =>
@@ -24,8 +24,8 @@ export function routeEncounter(a: Encounter): RoutingResult {
     return {
       outcome: 'professional',
       reason: injuryReported
-        ? 'A visible injury is a reason to contact a licensed wildlife rehabilitator for directions rather than trying to assess or treat it yourself.'
-        : 'Some details are uncertain or actions have already been taken. A licensed wildlife rehabilitator can give situation-specific directions.',
+        ? 'A visible injury is a reason to contact a permitted wildlife rehabilitator for directions rather than trying to assess or treat it yourself.'
+        : 'Some details are uncertain or actions have already been taken. A permitted wildlife rehabilitator can give situation-specific directions.',
     };
   }
 
@@ -49,12 +49,12 @@ export function routeEncounter(a: Encounter): RoutingResult {
   if (youngSquirrelAtDusk) {
     return {
       outcome: 'holding',
-      reason: 'In this fictional example, a young squirrel remains at dusk and no parent has been seen. Contact a licensed rehabilitator immediately for directions; short-term safe holding is only a cautious fallback while arranging professional help.',
+      reason: 'In this fictional example, a young squirrel remains at dusk and no parent has been seen. Contact a permitted rehabilitator immediately for directions; short-term safe holding is only a cautious fallback while arranging professional help.',
     };
   }
 
   return {
     outcome: 'professional',
-    reason: 'This combination does not fit a low-risk example in the local rules. For uncertainty or situations outside these examples, contact a licensed wildlife rehabilitator for directions.',
+    reason: 'This combination does not fit a low-risk example in the local rules. For uncertainty or situations outside these examples, contact a permitted wildlife rehabilitator for directions.',
   };
 }
