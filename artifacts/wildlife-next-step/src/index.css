@@ -60,18 +60,8 @@ button { cursor: pointer; }
 .btn-quiet { background:#e8e0ce; color:#344d3b; }
 .btn-quiet:hover { background:#ded3bb; }
 .btn-small { padding:10px 15px; font-size:.82rem; }
-.illustration { min-height: 350px; background:#dbe2d0; border-radius: 50% 46% 43% 39% / 42% 45% 51% 52%; position:relative; overflow:hidden; display:grid; place-items:center; }
-.illustration::before,.illustration::after { content:""; position:absolute; border:1px solid rgba(44,78,53,.16); border-radius:50%; width:78%; aspect-ratio:1; }
-.illustration::after { width:58%; }
-.sun-disc { position:absolute; width:90px; height:90px; border-radius:50%; background:#e8c66d; top:53px; right:77px; opacity:.8; }
-.hill { position:absolute; bottom:-70px; width:115%; height:210px; border-radius:50% 50% 0 0; background:#789477; transform:rotate(-9deg); }
-.hill.second { bottom:-112px; left:-75px; background:#4b6c52; transform:rotate(13deg); }
-.leaf-stem { position:absolute; width:4px; height:196px; background:#426748; bottom:35px; right:28%; transform:rotate(29deg); border-radius:4px; z-index:1; }
-.leaf { position:absolute; width:58px; height:27px; border-radius:100% 0 100% 0; background:#527c58; z-index:1; }
-.leaf.one { right:25%; bottom:170px; transform:rotate(-35deg); }.leaf.two { right:36%; bottom:123px; transform:rotate(45deg) scale(.86); }.leaf.three { right:19%; bottom:90px; transform:rotate(-35deg) scale(.75); }
-.bird { position:absolute; z-index:2; width:48px; height:35px; right:39%; top:95px; background:#f7f1e2; border-radius:60% 55% 48% 52%; transform:rotate(-8deg); }
-.bird::before { content:""; position:absolute; width:27px; height:18px; background:#d4b45e; border-radius:100% 0 100% 0; right:5px; top:11px; transform:rotate(-18deg); }
-.bird::after { content:""; position:absolute; right:-9px; top:12px; border-left:12px solid #ac7c32; border-top:5px solid transparent; border-bottom:5px solid transparent; }
+.illustration { aspect-ratio:2 / 1; width:100%; border-radius:18px; position:relative; overflow:hidden; }
+.hero-artwork { display:block; width:100%; height:100%; object-fit:cover; border-radius:inherit; }
 .content-section { padding:66px 0 72px; border-top:1px solid rgba(51,73,57,.15); }
 .section-heading { display:flex; align-items:end; justify-content:space-between; gap:20px; margin-bottom:28px; }
 .section-heading h2 { font:600 clamp(1.9rem,3.4vw,2.8rem)/1.1 var(--app-font-serif); margin:8px 0 0; letter-spacing:-.035em; }
@@ -213,8 +203,7 @@ button { cursor: pointer; }
  .shell { width:min(100% - 30px, 560px); }
  .hero { grid-template-columns:1fr;gap:24px;padding:49px 0 52px; }
  .hero h1 { font-size:clamp(2.6rem,12vw,4rem); }
- .illustration { min-height:260px;max-width:440px;width:100%;margin:0 auto; }
- .sun-disc { width:70px;height:70px;right:16%;top:35px; }
+  .illustration { max-width:440px;width:100%;margin:0 auto; }
  .demo-grid { grid-template-columns:1fr; }
  .demo-card { min-height:unset; }
  .section-heading { display:block; }

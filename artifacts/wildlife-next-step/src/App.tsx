@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import heroArtwork from '@assets/image_1791386276304.png';
 import { ArrowLeft, ArrowRight, Check, ChevronRight, CircleAlert, RotateCcw, ShieldCheck } from 'lucide-react';
 import { SiteHeader, PrototypeNotice, Progress } from './components/SiteHeader';
 import { RehabilitatorDirectory } from './components/RehabilitatorDirectory';
@@ -94,10 +95,12 @@ function Home({ onStart, onDemo }: { onStart: () => void; onDemo: (answers: Enco
               </div>
               <div style={{ marginTop: 20 }}><PrototypeNotice /></div>
             </div>
-            <div className="illustration" role="img" aria-label="Quiet illustration of a bird perched among soft green hills">
-              <span className="sun-disc" /><span className="bird" />
-              <span className="leaf-stem" /><span className="leaf one" /><span className="leaf two" /><span className="leaf three" />
-              <span className="hill" /><span className="hill second" />
+            <div className="illustration">
+              <img
+                className="hero-artwork"
+                src={heroArtwork}
+                alt="Wildlife Next Step title above an illustrated squirrel, blue jay, and raccoon in a forest landscape."
+              />
             </div>
           </section>
           <section className="content-section" aria-labelledby="demo-title">
