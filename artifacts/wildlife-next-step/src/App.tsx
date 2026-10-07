@@ -82,8 +82,8 @@ function Home({ onStart, onDemo }: { onStart: () => void; onDemo: (answers: Enco
   return (
     <>
       <main>
-        <div className="shell">
-          <section className="hero">
+        <section className="hero" style={{ backgroundImage: `url("${heroArtwork}")` }}>
+          <div className="shell hero-content">
             <div>
               <span className="eyebrow">A thoughtful practice tool for Indiana classrooms</span>
               <h1 className="serif">Found wildlife? Start with the safest next step.</h1>
@@ -95,14 +95,9 @@ function Home({ onStart, onDemo }: { onStart: () => void; onDemo: (answers: Enco
               </div>
               <div style={{ marginTop: 20 }}><PrototypeNotice /></div>
             </div>
-            <div className="illustration">
-              <img
-                className="hero-artwork"
-                src={heroArtwork}
-                alt="Wildlife Next Step title above an illustrated squirrel, blue jay, and raccoon in a forest landscape."
-              />
-            </div>
-          </section>
+          </div>
+        </section>
+        <div className="shell">
           <section className="content-section" aria-labelledby="demo-title">
             <div className="section-heading">
               <div><span className="eyebrow">Try a made-up scenario</span><h2 id="demo-title">Start with a quick example</h2></div>
