@@ -1,1 +1,2 @@
 - [Patch hunk anchors](patch-hunk-anchors.md) — exact top-level anchors and source-ordered hunks avoid repeated patch failures.
+- [Wildlife directory safety](wildlife-directory-safety.md) — preserve official DNR listings; only show source-verified provider availability and safety guidance.

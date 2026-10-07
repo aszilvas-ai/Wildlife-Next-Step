@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { directorySource, rehabilitators } from '../src/data/contacts.ts';
 import { demos, fieldOptions } from '../src/data/scenarios.ts';
-import { getRehabilitatorsForCounty, getVerifiedAfterHoursContacts, noConfirmedAfterHoursServiceMessage } from '../src/logic/contactDirectory.ts';
-import { isUrgentConcern, routeEncounter } from '../src/logic/ruleEngine.ts';
+import { getRehabilitatorsForCounty, getVerifiedAfterHoursOption, noConfirmedAfterHoursServiceMessage } from '../src/logic/contactDirectory.ts';
+import { isInjuredOrUrgentConcern, isUrgentConcern, routeEncounter } from '../src/logic/ruleEngine.ts';
 
 test('the DNR directory lookup returns the published contacts for a selected county', () => {
   const monroeContacts = getRehabilitatorsForCounty('Monroe');
@@ -29,27 +29,78 @@ test('no county-specific listing is invented when the DNR directory has no entry
   assert.deepEqual(getRehabilitatorsForCounty('Hamilton'), []);
 });
 
-test('the official directory has no source-verified after-hours or 24-hour contacts in this snapshot', () => {
-  assert.deepEqual(getVerifiedAfterHoursContacts('Monroe'), []);
-  assert.ok(rehabilitators.every((contact) => !contact.verifiedAfterHoursAvailability));
-  assert.equal(noConfirmedAfterHoursServiceMessage, 'No confirmed after-hours wildlife service is available in this prototype.');
+test('provider hours and recorded after-hours guidance are shown only with their published sources', () => {
+  const jennifer = rehabilitators.find((contact) => contact.name === 'Jennifer Hancock');
+  const leah = rehabilitators.find((contact) => contact.name === 'Leah Perry');
+  assert.ok(jennifer?.normalHours);
+  assert.ok(leah?.normalHours);
+  assert.equal(jennifer.normalHours.sourceUrl, 'https://www.rewildingindiana.org/contact');
+  assert.match(jennifer.normalHours.text, /9 a\.m\.–8 p\.m\./);
+  assert.match(jennifer.normalHours.text, /not guaranteed/);
+  assert.equal(jennifer.afterHoursInstructions?.sourceUrl, 'https://www.rewildingindiana.org/rehabilitation-center');
+  assert.match(jennifer.afterHoursInstructions?.text ?? '', /recorded guidance/);
+  assert.equal(leah.contactMethod, 'phone calls only');
+  assert.equal(getVerifiedAfterHoursOption(jennifer), null);
+  assert.equal(getVerifiedAfterHoursOption(leah), null);
+  assert.equal(noConfirmedAfterHoursServiceMessage, 'No verified after-hours wildlife service is listed in this prototype.');
 });
 
-test('urgent concern routing is the same for every animal type', () => {
+test('a source-backed after-hours option needs a phone, source, and verification date', () => {
+  const base = rehabilitators[0];
+  const option = {
+    name: 'Verified test listing',
+    category: 'wildlife emergency' as const,
+    availability: '24-hour' as const,
+    phoneNumbers: ['verified-number'],
+    sourceUrl: 'https://example.org/verified-hours',
+    verifiedAt: 'October 7, 2026',
+  };
+  const contactWithOption = { ...base, afterHoursOption: option };
+  assert.equal(getVerifiedAfterHoursOption(contactWithOption), option);
+  assert.equal(getVerifiedAfterHoursOption({
+    ...contactWithOption,
+    afterHoursOption: { ...option, phoneNumbers: [], sourceUrl: '' },
+  }), null);
+});
+
+test('high-risk concerns route urgently for every animal type', () => {
+  const base = demos.find((demo) => demo.id === 'after-hours-bleeding')?.answers;
+  assert.ok(base);
+  const highRiskConcerns = [
+    'Visible bleeding',
+    'Serious injury',
+    'Unable to move',
+    'Suspected broken limb',
+    'Trouble breathing',
+    'Animal in traffic',
+    'Other urgent concern',
+  ];
+  for (const animal of fieldOptions.animal) {
+    for (const injury of highRiskConcerns) {
+      const encounter = { ...base, animal, injury };
+      assert.equal(isUrgentConcern(encounter), true, `${injury} should be urgent for ${animal}`);
+      assert.equal(isInjuredOrUrgentConcern(encounter), true);
+      assert.equal(routeEncounter(encounter).outcome, 'professional');
+    }
+  }
+});
+
+test('other visible injuries route to a rehabilitator without using the red urgent status', () => {
   const base = demos.find((demo) => demo.id === 'after-hours-bleeding')?.answers;
   assert.ok(base);
   for (const animal of fieldOptions.animal) {
-    for (const injury of ['Visible bleeding', 'Serious injury', 'Other visible injury', 'Other urgent concern']) {
-      const encounter = { ...base, animal, injury };
-      assert.equal(isUrgentConcern(encounter), true, `${injury} should be urgent for ${animal}`);
-      assert.equal(routeEncounter(encounter).outcome, 'professional');
-    }
+    const encounter = { ...base, animal, injury: 'Other visible injury' };
+    assert.equal(isInjuredOrUrgentConcern(encounter), true);
+    assert.equal(isUrgentConcern(encounter), false);
+    assert.equal(routeEncounter(encounter).outcome, 'professional');
   }
 });
 
 test('no visible injury and uncertainty are not mislabeled as urgent injury reports', () => {
   assert.equal(isUrgentConcern({ injury: 'No visible injury' }), false);
   assert.equal(isUrgentConcern({ injury: 'Not sure' }), false);
+  assert.equal(isInjuredOrUrgentConcern({ injury: 'No visible injury' }), false);
+  assert.equal(isInjuredOrUrgentConcern({ injury: 'Not sure' }), false);
 });
 
 test('an unknown time period routes conservatively without claiming contact hours ended', () => {

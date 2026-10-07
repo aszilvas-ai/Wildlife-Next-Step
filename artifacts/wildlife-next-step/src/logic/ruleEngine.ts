@@ -5,15 +5,33 @@ export type RoutingResult = {
   reason: string;
 };
 
-const urgentConcernAnswers = new Set([
+const injuryReportedAnswers = new Set([
   'visible bleeding',
   'serious injury',
   'other visible injury',
+  'unable to move',
+  'suspected broken limb',
+  'trouble breathing',
+  'animal in traffic',
+  'other urgent concern',
+]);
+
+const urgentConcernAnswers = new Set([
+  'visible bleeding',
+  'serious injury',
+  'unable to move',
+  'suspected broken limb',
+  'trouble breathing',
+  'animal in traffic',
   'other urgent concern',
 ]);
 
 export function isUrgentConcern(a: Pick<Encounter, 'injury'>): boolean {
   return urgentConcernAnswers.has(a.injury.trim().toLowerCase());
+}
+
+export function isInjuredOrUrgentConcern(a: Pick<Encounter, 'injury'>): boolean {
+  return injuryReportedAnswers.has(a.injury.trim().toLowerCase());
 }
 
 /**
@@ -22,12 +40,16 @@ export function isUrgentConcern(a: Pick<Encounter, 'injury'>): boolean {
  */
 export function routeEncounter(a: Encounter): RoutingResult {
   const injury = a.injury.toLowerCase();
-  const injuryReported = isUrgentConcern(a);
+  const injuryReported = isInjuredOrUrgentConcern(a);
   const injuryUnclear = ![
     'no visible injury',
     'visible bleeding',
     'serious injury',
     'other visible injury',
+    'unable to move',
+    'suspected broken limb',
+    'trouble breathing',
+    'animal in traffic',
     'other urgent concern',
   ].includes(injury);
   const uncertain = [a.timeOfDay, a.animal, a.appearance, a.parentSeen].some((v) =>
@@ -41,7 +63,9 @@ export function routeEncounter(a: Encounter): RoutingResult {
     return {
       outcome: 'professional',
       reason: injuryReported
-        ? 'A reported injury or urgent concern is a reason to contact a permitted wildlife rehabilitator for directions rather than trying to assess or treat it yourself.'
+        ? isUrgentConcern(a)
+          ? 'A reported urgent concern needs prompt professional guidance. Contact a permitted wildlife rehabilitator rather than trying to assess or treat it yourself.'
+          : 'A reported visible injury is a reason to contact a permitted wildlife rehabilitator for directions rather than trying to assess or treat it yourself.'
         : 'Some details are uncertain or actions have already been taken. A permitted wildlife rehabilitator can give situation-specific directions.',
     };
   }

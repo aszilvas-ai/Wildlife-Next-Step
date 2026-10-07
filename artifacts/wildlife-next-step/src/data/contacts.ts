@@ -1,3 +1,18 @@
+export type VerifiedContactNote = {
+  text: string;
+  sourceUrl: string;
+  verifiedAt: string;
+};
+
+export type VerifiedAfterHoursOption = {
+  name: string;
+  category: 'wildlife emergency' | 'veterinary emergency';
+  availability: 'after-hours' | '24-hour';
+  phoneNumbers: string[];
+  sourceUrl: string;
+  verifiedAt: string;
+};
+
 export type RehabilitatorContact = {
   counties: string[];
   name: string;
@@ -5,11 +20,9 @@ export type RehabilitatorContact = {
   phoneNumbers: string[];
   contactMethod?: 'text only' | 'phone calls only' | 'text preferred' | 'call or text for address';
   organization?: string;
-  verifiedAfterHoursAvailability?: {
-    status: 'after-hours' | '24-hour';
-    sourceUrl: string;
-    verifiedAt: string;
-  };
+  normalHours?: VerifiedContactNote;
+  afterHoursInstructions?: VerifiedContactNote;
+  afterHoursOption?: VerifiedAfterHoursOption;
 };
 
 export const directorySource = {
@@ -147,6 +160,16 @@ export const rehabilitators: RehabilitatorContact[] = [
     animals: 'Mammals, birds, turtles, lizards, snakes, and amphibians',
     phoneNumbers: ['317-245-8893'],
     organization: 'ReWilding Indiana',
+    normalHours: {
+      text: 'Published call window: 9 a.m.–8 p.m. The organization says messages may be returned as soon as possible; a response is not guaranteed.',
+      sourceUrl: 'https://www.rewildingindiana.org/contact',
+      verifiedAt: 'October 7, 2026',
+    },
+    afterHoursInstructions: {
+      text: 'The organization says recorded guidance is available after hours. This does not confirm a live response.',
+      sourceUrl: 'https://www.rewildingindiana.org/rehabilitation-center',
+      verifiedAt: 'October 7, 2026',
+    },
   },
   {
     counties: ['Hancock'],
@@ -155,6 +178,16 @@ export const rehabilitators: RehabilitatorContact[] = [
     phoneNumbers: ['317-245-8893'],
     contactMethod: 'phone calls only',
     organization: 'ReWilding Indiana',
+    normalHours: {
+      text: 'Published call window: 9 a.m.–8 p.m. The organization says messages may be returned as soon as possible; a response is not guaranteed.',
+      sourceUrl: 'https://www.rewildingindiana.org/contact',
+      verifiedAt: 'October 7, 2026',
+    },
+    afterHoursInstructions: {
+      text: 'The organization says recorded guidance is available after hours. This does not confirm a live response.',
+      sourceUrl: 'https://www.rewildingindiana.org/rehabilitation-center',
+      verifiedAt: 'October 7, 2026',
+    },
   },
   {
     counties: ['Hendricks'],

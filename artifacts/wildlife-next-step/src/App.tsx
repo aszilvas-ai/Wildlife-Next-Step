@@ -5,7 +5,7 @@ import { RehabilitatorDirectory } from './components/RehabilitatorDirectory';
 import { SourcesPanel } from './components/ReferencePanel';
 import { demos, emptyEncounter, fieldOptions, fieldTitles, formatAnswer, type Encounter, type OutcomeId } from './data/scenarios';
 import { getRehabilitatorsForCounty } from './logic/contactDirectory';
-import { isUrgentConcern, routeEncounter } from './logic/ruleEngine';
+import { isInjuredOrUrgentConcern, isUrgentConcern, routeEncounter } from './logic/ruleEngine';
 
 type Screen = 'home' | 'form' | 'review' | 'result';
 
@@ -24,7 +24,7 @@ const fieldStepTitles: Record<FormField, string> = {
   timeOfDay: 'What part of the day is it?',
   animal: 'What type of animal might it be?',
   appearance: 'What does the fictional scenario describe?',
-  injury: 'Is bleeding, a serious injury, or another urgent concern described?',
+  injury: 'Is any injury or urgent concern described?',
   parentSeen: 'Was a parent animal seen?',
   actions: 'What has already happened?',
 };
@@ -276,6 +276,7 @@ function Result({
   const result = outcomeContent[route.outcome];
   const contacts = encounter.county ? getRehabilitatorsForCounty(encounter.county) : [];
   const urgentConcern = isUrgentConcern(encounter);
+  const injuryOrUrgentConcern = isInjuredOrUrgentConcern(encounter);
   const alreadyContained = encounter.actions.includes('Already contained');
   return (
     <main className="shell flow-wrap">
@@ -297,6 +298,12 @@ function Result({
             This situation needs professional guidance. The app cannot safely provide treatment instructions.
           </p>
         )}
+        {urgentConcern && (
+          <div className="urgent-guidance-message" role="alert" data-testid="urgent-status">
+            <span className="urgent-status-badge">URGENT</span>
+            <span>This animal may need professional help. Wildlife Next Step cannot diagnose the injury or determine whether waiting is safe.</span>
+          </div>
+        )}
         <div className="result-layout">
           <section className="result-panel" aria-labelledby="checklist-title">
             <h3 id="checklist-title">Next-step checklist</h3>
@@ -310,7 +317,7 @@ function Result({
         {alreadyContained && (
           <div className="safety-box" role="note">
             <h3>Already contained</h3>
-            <p>Do not disturb it while asking a permitted rehabilitator for directions. This prototype does not provide care instructions.</p>
+            <p>If it is already safely contained, keep it quiet, dark, secure, and ventilated without moving or disturbing it. Do not feed, give water, medicate, or treat it; ask a qualified professional for directions.</p>
           </div>
         )}
         {route.outcome === 'holding' && (
@@ -325,6 +332,9 @@ function Result({
               county={encounter.county}
               contacts={contacts}
               timeOfDay={encounter.timeOfDay}
+              animalType={encounter.animal}
+              injuryConcern={encounter.injury}
+              injuryOrUrgentConcern={injuryOrUrgentConcern}
               urgentConcern={urgentConcern}
               onCountyChange={onCountyChange}
             />

@@ -141,6 +141,8 @@ button { cursor: pointer; }
 .citation-note { margin-top:12px!important;font-size:.77rem!important;color:#7b8075!important; }
 .result-actions { display:flex;flex-wrap:wrap;gap:10px;margin-top:26px; }
 .professional-guidance-message { margin:16px 0 0;padding:15px 17px;border-left:4px solid #b98534;border-radius:0 13px 13px 0;background:#f4e9d5;color:#543f1d;font-weight:700;line-height:1.55; }
+.urgent-guidance-message { display:flex;align-items:flex-start;gap:11px;margin:14px 0 0;padding:15px 17px;border:1px solid #d88d7d;border-left:4px solid #b43d2d;border-radius:0 13px 13px 0;background:#f9e7e2;color:#682b22;font-size:.92rem;font-weight:750;line-height:1.55; }
+.urgent-status-badge { display:inline-flex;flex:0 0 auto;align-items:center;padding:4px 9px;border-radius:999px;background:#a83225;color:#fff;font-size:.7rem;font-weight:900;letter-spacing:.1em; }
 .after-hours-card { margin:0;border:1px solid #c49a52;border-radius:20px;overflow:hidden;background:#f7f5ef;box-shadow:0 12px 30px rgba(37,56,75,.09); }
 .after-hours-header { display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start;padding:22px 23px;background:#263b50;color:#f8f3e7; }
 .after-hours-moon { width:42px;height:42px;border:1px solid rgba(236,195,111,.55);border-radius:50%;display:grid;place-items:center;background:rgba(221,177,89,.15);color:#edc46f; }
@@ -188,6 +190,20 @@ button { cursor: pointer; }
 .urgent-after-hours-plan { margin-top:16px;padding:17px;border:1px solid #c49a52;border-radius:15px;background:#f4ead7; }
 .urgent-after-hours-plan h3 { margin:0 0 10px;color:#5a391f;font:600 1.28rem var(--app-font-serif); }
 .urgent-after-hours-plan .provider-grid { margin-top:13px; }
+.after-hours-plan-heading { display:flex;align-items:center;gap:10px;flex-wrap:wrap; }
+.urgent-after-hours-plan .after-hours-plan-heading h3 { margin:0; }
+.after-hours-plan-timeline { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;list-style:none;margin:15px 0;padding:0;counter-reset:afterplan; }
+.after-hours-plan-timeline li { min-width:0;padding:13px;border:1px solid #ded3bd;border-radius:11px;background:#fffdf8;color:#4c5962;font-size:.83rem;line-height:1.55;counter-increment:afterplan; }
+.after-hours-plan-timeline li::before { content:counter(afterplan) ".";display:block;margin-bottom:5px;color:#815b1d;font-size:.76rem;font-weight:900; }
+.after-hours-plan-timeline strong { color:#293d52; }
+.urgent-provider-summary,.after-hours-safety,.after-hours-message-template,.verified-after-hours-option { margin-top:14px;padding:15px;border:1px solid #d8d0bd;border-radius:12px;background:#fffdf8; }
+.urgent-provider-summary h4,.after-hours-safety h4,.after-hours-message-template h4,.verified-after-hours-option h4 { margin:0 0 8px;color:#293d52;font-size:.97rem; }
+.urgent-provider-summary p,.verified-after-hours-option p { margin:5px 0;color:#53636f;font-size:.84rem;line-height:1.55; }
+.provider-verified-note { margin:9px 0;color:#53636f;font-size:.8rem;line-height:1.55; }
+.provider-verified-note a { display:inline-flex;align-items:center;gap:3px;color:#31583f;font-weight:700;text-underline-offset:3px; }
+.after-hours-select-button { margin-top:11px; }
+.after-hours-message-template pre { overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0;padding:12px;border:1px solid #e2ded3;border-radius:9px;background:#f6f4ee;color:#354452;font:500 .82rem/1.6 ui-monospace,SFMono-Regular,Menlo,monospace; }
+.after-hours-close-button { margin-top:14px; }
 .urgent-after-hours-limit { margin:13px 0 0;padding:13px 15px;border-left:4px solid #a64834;border-radius:0 11px 11px 0;background:#f5dfd7;color:#592b23;font-size:.88rem;font-weight:750;line-height:1.6; }
 .after-hours-why { padding:17px 22px 20px;color:#34495b; }
 .after-hours-why summary { width:fit-content;color:#34495b;font-size:.88rem;font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer; }
@@ -208,6 +224,7 @@ button { cursor: pointer; }
  .result-layout { grid-template-columns:1fr; }
  .contact-grid { grid-template-columns:1fr; }
  .provider-grid { grid-template-columns:1fr; }
+   .after-hours-plan-timeline { grid-template-columns:1fr; }
   .after-hours-timeline { grid-template-columns:repeat(2,minmax(0,1fr));row-gap:13px; }
   .after-hours-timeline li::after { display:none; }
   .after-hours-header { padding:19px 17px; }

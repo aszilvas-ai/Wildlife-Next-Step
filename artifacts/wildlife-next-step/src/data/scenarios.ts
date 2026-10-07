@@ -108,7 +108,18 @@ export const fieldOptions = {
     'Small / juvenile',
     'Unclear / not sure',
   ],
-  injury: ['No visible injury', 'Visible bleeding', 'Serious injury', 'Other visible injury', 'Other urgent concern', 'Not sure'],
+  injury: [
+    'No visible injury',
+    'Visible bleeding',
+    'Serious injury',
+    'Unable to move',
+    'Suspected broken limb',
+    'Trouble breathing',
+    'Animal in traffic',
+    'Other visible injury',
+    'Other urgent concern',
+    'Not sure',
+  ],
   parentSeen: ['Yes', 'No', 'Not sure'],
   actions: [
     'No action yet',
@@ -126,7 +137,7 @@ export const fieldTitles: Record<keyof Encounter, string> = {
   timeOfDay: 'Time of day',
   animal: 'Likely animal type',
   appearance: 'Size and appearance',
-  injury: 'Visible injury',
+  injury: 'Injury or urgent concern',
   parentSeen: 'Was a parent seen?',
   actions: 'Actions already taken',
 };
