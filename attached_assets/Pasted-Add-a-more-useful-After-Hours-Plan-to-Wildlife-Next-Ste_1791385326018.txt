@@ -1,0 +1,35 @@
+Add a more useful **After-Hours Plan** to Wildlife Next Step for any injured wildlife situation.
+
+When a user reports an injured animal and the selected rehabilitator is closed, show an After-Hours Plan with these steps:
+
+1. **Contact the rehabilitator anyway**
+   - Show the phone number.
+   - Add a “Call now” button.
+   - Explain that some rehabilitators may have a voicemail message or recorded after-hours instructions.
+   - Let the user copy the number and show a short message template: animal type, approximate location, injury concern, and callback number.
+
+2. **Check verified urgent options**
+   - Add an optional field to each directory contact called `afterHoursOption`.
+   - If it exists, show a separate card for a verified 24-hour veterinary or wildlife emergency option.
+   - If it does not exist, say: “No verified after-hours wildlife service is listed in this prototype.”
+   - Do not claim that any service is open, available, or able to accept the animal.
+
+3. **Keep the situation calm and safe**
+   - Display this only as general, temporary safety guidance:
+     - “Safely contain the animal only if it is appropriate and safe to do so.”
+     - “Keep people and pets away.”
+     - “Keep the animal in a quiet, dark, secure, ventilated place if it has been safely contained.”
+     - “Do not feed, give water, medicate, or attempt treatment unless a qualified professional gives instructions.”
+   - Add: “This guidance is not a diagnosis and does not mean it is safe to wait until morning.”
+
+4. **Escalate high-risk cases**
+   - If the user reports bleeding, inability to move, a broken limb, trouble breathing, an animal in traffic, or another urgent concern, show a red “Urgent” status.
+   - State: “This animal may need professional help. Wildlife Next Step cannot diagnose the injury or determine whether waiting is safe.”
+   - If people, pets, or traffic are in immediate danger, tell the user to contact local emergency services.
+
+Implementation requirements:
+- Make this process work for every animal type.
+- Keep the directory data fictional for this class prototype.
+- Add fields for normal hours, after-hours instructions, and optional verified urgent contacts.
+- Use calm, clear language and a step-by-step timeline: “Now → Contact → Check urgent options → Keep safe until professional guidance.”
+- Do not include medical treatment, feeding instructions, diagnoses, or promises that help will be available.
