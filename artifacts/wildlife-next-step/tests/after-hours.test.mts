@@ -8,11 +8,20 @@ import { routeEncounter } from '../src/logic/ruleEngine.ts';
 test('the DNR directory lookup returns the published contacts for a selected county', () => {
   const monroeContacts = getRehabilitatorsForCounty('Monroe');
   assert.equal(monroeContacts.length, 8);
+  assert.equal(new Set(monroeContacts.flatMap((contact) => contact.phoneNumbers)).size, 4);
   assert.equal(getRehabilitatorsForCounty('mONROE').length, 8);
   assert.ok(monroeContacts.every((contact) => contact.counties.includes('Monroe')));
   assert.equal(rehabilitators.length, 69);
   assert.equal(new Set(rehabilitators.flatMap((contact) => contact.counties)).size, 45);
   assert.equal(directorySource.updatedAt, 'September 29, 2026');
+  assert.equal(rehabilitators.find((contact) => contact.name === 'Johnna Smith')?.phoneNumbers[0], '260-731-5953');
+  assert.equal(rehabilitators.find((contact) => contact.name === 'Amy Clark')?.contactMethod, 'text preferred');
+});
+
+test('county contact choices distinguish provider listings from distinct phone numbers', () => {
+  const brownContacts = getRehabilitatorsForCounty('Brown');
+  assert.equal(brownContacts.length, 2);
+  assert.equal(new Set(brownContacts.flatMap((contact) => contact.phoneNumbers)).size, 1);
 });
 
 test('no county-specific listing is invented when the DNR directory has no entry', () => {

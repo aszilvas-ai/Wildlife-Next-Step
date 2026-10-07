@@ -3,7 +3,7 @@ export type RehabilitatorContact = {
   name: string;
   animals: string;
   phoneNumbers: string[];
-  contactMethod?: 'text only' | 'phone calls only';
+  contactMethod?: 'text only' | 'phone calls only' | 'text preferred' | 'call or text for address';
   organization?: string;
 };
 
@@ -169,7 +169,7 @@ export const rehabilitators: RehabilitatorContact[] = [
     counties: ['Jay'],
     name: 'Johnna Smith',
     animals: 'Mammals (no raccoons), turtles, and lizards',
-    phoneNumbers: ['260-731-5955'],
+    phoneNumbers: ['260-731-5953'],
   },
   {
     counties: ['Jefferson'],
@@ -203,6 +203,7 @@ export const rehabilitators: RehabilitatorContact[] = [
     name: 'Andrea Muir',
     animals: 'Raccoons and foxes only',
     phoneNumbers: ['574-366-0106'],
+    contactMethod: 'call or text for address',
   },
   {
     counties: ['LaPorte'],
@@ -222,6 +223,7 @@ export const rehabilitators: RehabilitatorContact[] = [
     name: 'Amy Clark',
     animals: 'Squirrels, groundhogs, beavers, muskrats, rabbits, opossums, coyotes, bats, turtles, frogs, lizards, and salamanders (no raccoons)',
     phoneNumbers: ['812-322-2003'],
+    contactMethod: 'text preferred',
     organization: 'The Pipsqueakery',
   },
   {
