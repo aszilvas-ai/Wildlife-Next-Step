@@ -4,11 +4,14 @@ export type Encounter = {
   animal: string;
   appearance: string;
   injury: string;
+  movement: string;
+  danger: string;
+  condition: string;
   parentSeen: string;
   actions: string[];
 };
 
-export type OutcomeId = 'observe' | 'professional' | 'holding';
+export type OutcomeId = 'observe' | 'professional';
 
 export type DemoScenario = {
   id: string;
@@ -23,6 +26,9 @@ export const emptyEncounter: Encounter = {
   animal: '',
   appearance: '',
   injury: '',
+  movement: '',
+  danger: '',
+  condition: '',
   parentSeen: '',
   actions: [],
 };
@@ -51,7 +57,11 @@ export const demos: DemoScenario[] = [
     answers: {
       county: 'Marion', timeOfDay: 'Afternoon (noon–5 p.m.)', animal: 'Squirrel',
       appearance: 'Nearly full-sized; fluffy tail; can run, jump, and climb',
-      injury: 'No visible injury', parentSeen: 'No',
+      injury: 'No visible injury',
+      movement: 'Moving normally',
+      danger: 'No immediate danger reported',
+      condition: 'No weakness, coldness, or distress reported',
+      parentSeen: 'Not a young animal',
       actions: ['Observed from a distance'],
     },
   },
@@ -61,19 +71,27 @@ export const demos: DemoScenario[] = [
     description: 'A fictional example where visible injury means ask a professional.',
     answers: {
       county: 'Monroe', timeOfDay: 'Morning (8 a.m.–noon)', animal: 'Squirrel',
-      appearance: 'Small; brown fur; details uncertain',
-      injury: 'Visible bleeding', parentSeen: 'Not sure',
+      appearance: 'Small / juvenile',
+      injury: 'Visible bleeding',
+      movement: 'Moving normally',
+      danger: 'No immediate danger reported',
+      condition: 'No weakness, coldness, or distress reported',
+      parentSeen: 'Yes — seen or may be nearby',
       actions: ['Kept people and pets away'],
     },
   },
   {
     id: 'baby-at-dusk',
-    label: 'Young squirrel at dusk',
-    description: 'A young animal remains after dusk; professional advice comes first.',
+    label: 'Young squirrel with a possible parent',
+    description: 'A young animal has no reported injury or danger and may have a parent nearby.',
     answers: {
       county: 'Hamilton', timeOfDay: 'Dusk / evening (5–9 p.m.)', animal: 'Squirrel',
       appearance: 'Young / baby; eyes open',
-      injury: 'No visible injury', parentSeen: 'No',
+      injury: 'No visible injury',
+      movement: 'Moving normally',
+      danger: 'No immediate danger reported',
+      condition: 'No weakness, coldness, or distress reported',
+      parentSeen: 'Yes — seen or may be nearby',
       actions: ['Observed from a distance'],
     },
   },
@@ -83,8 +101,12 @@ export const demos: DemoScenario[] = [
     description: 'A fictional evening scenario; the official directory does not publish provider hours.',
     answers: {
       county: 'Monroe', timeOfDay: 'Dusk / evening (5–9 p.m.)', animal: 'Squirrel',
-      appearance: 'Small; brown fur; details uncertain',
-      injury: 'Visible bleeding', parentSeen: 'Not sure',
+      appearance: 'Small / juvenile',
+      injury: 'Visible bleeding',
+      movement: 'Moving normally',
+      danger: 'No immediate danger reported',
+      condition: 'No weakness, coldness, or distress reported',
+      parentSeen: 'Yes — seen or may be nearby',
       actions: ['Kept people and pets away'],
     },
   },
@@ -112,15 +134,25 @@ export const fieldOptions = {
     'No visible injury',
     'Visible bleeding',
     'Serious injury',
-    'Unable to move',
     'Suspected broken limb',
     'Trouble breathing',
-    'Animal in traffic',
     'Other visible injury',
     'Other urgent concern',
     'Not sure',
   ],
-  parentSeen: ['Yes', 'No', 'Not sure'],
+  movement: ['Moving normally', 'Unable to move normally', 'Not sure'],
+  danger: [
+    'No immediate danger reported',
+    'Immediate danger: traffic or nearby pet',
+    'Other immediate danger',
+    'Not sure',
+  ],
+  condition: [
+    'No weakness, coldness, or distress reported',
+    'Weak, cold, or distressed',
+    'Not sure',
+  ],
+  parentSeen: ['Yes — seen or may be nearby', 'No parent seen nearby', 'Not sure', 'Not a young animal'],
   actions: [
     'No action yet',
     'Observed from a distance',
@@ -137,8 +169,11 @@ export const fieldTitles: Record<keyof Encounter, string> = {
   timeOfDay: 'Time of day',
   animal: 'Likely animal type',
   appearance: 'Size and appearance',
-  injury: 'Injury or urgent concern',
-  parentSeen: 'Was a parent seen?',
+  injury: 'Bleeding or other obvious injury',
+  movement: 'Movement',
+  danger: 'Immediate danger',
+  condition: 'Weakness, cold, or distress',
+  parentSeen: 'Possible parent nearby',
   actions: 'Actions already taken',
 };
 

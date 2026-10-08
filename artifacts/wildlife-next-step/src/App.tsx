@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import heroArtwork from '@assets/wildlife_banner_cleaned.png';
 import { ArrowLeft, ArrowRight, Check, ChevronRight, CircleAlert, RotateCcw, ShieldCheck } from 'lucide-react';
 import { SiteHeader, PrototypeNotice, Progress } from './components/SiteHeader';
@@ -9,6 +9,14 @@ import { getRehabilitatorsForCounty } from './logic/contactDirectory';
 import { isInjuredOrUrgentConcern, isUrgentConcern, routeEncounter } from './logic/ruleEngine';
 
 type Screen = 'home' | 'form' | 'review' | 'result';
+
+function scrollPageToTop() {
+  if (typeof window === 'undefined') return;
+  const prefersReducedMotion =
+    typeof window.matchMedia === 'function'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.scrollTo({ top: 0, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+}
 
 type FormField = Exclude<keyof Encounter, 'county'>;
 
@@ -354,7 +362,12 @@ function App() {
   const [encounter, setEncounter] = useState<Encounter>({ ...emptyEncounter, actions: [] });
   const [formStartStep, setFormStartStep] = useState(0);
 
+  useEffect(() => {
+    if (screen === 'result') scrollPageToTop();
+  }, [screen]);
+
   const start = () => {
+    scrollPageToTop();
     setEncounter({ ...emptyEncounter, actions: [] });
     setFormStartStep(0);
     setScreen('form');
