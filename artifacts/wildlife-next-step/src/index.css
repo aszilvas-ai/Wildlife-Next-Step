@@ -165,6 +165,12 @@ button { cursor: pointer; }
 .other-provider-list > summary { width:fit-content;color:#31583f;font-size:.88rem;font-weight:750;text-decoration:underline;text-underline-offset:3px;cursor:pointer; }
 .other-provider-list[open] > summary { margin-bottom:10px; }
 .other-provider-list .provider-grid { margin-top:14px; }
+.matching-county-suggestions { margin-top:14px;padding:13px 15px;border:1px solid #ded7c8;border-radius:13px;background:#fffdf8; }
+.matching-county-suggestions > .after-hours-message-note { margin-top:0; }
+.matching-county-list { display:flex;flex-wrap:wrap;gap:7px;list-style:none;margin:11px 0 0;padding:0; }
+.matching-county-button { padding:6px 10px;border:1px solid #cfc3ab;border-radius:999px;background:#f9f4e8;color:#31583f;font:inherit;font-size:.8rem;font-weight:750;cursor:pointer; }
+.matching-county-button:hover { background:#e8f0e8; }
+.matching-county-button:focus-visible { outline:3px solid #b4762a;outline-offset:2px; }
 .provider-card { min-width:0; }
 .provider-badge { display:inline-block;background:#e7d6ad;color:#5c461d;border-radius:5px;padding:3px 6px;font-size:.65rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px; }
 .provider-organization { color:#293d52!important;font-weight:700; }
@@ -182,6 +188,9 @@ button { cursor: pointer; }
 .after-hours-guidance { margin:0;padding-left:20px;display:grid;gap:8px;color:#50606b;font-size:.86rem;line-height:1.6; }
 .urgent-after-hours-entry { background:#fffaf0; }
 .urgent-after-hours-entry > .btn { margin-top:14px; }
+.urgent-after-hours-summary { margin:12px 0 15px;padding:14px 16px;border-left:4px solid #a64834;border-radius:0 11px 11px 0;background:#f5dfd7;color:#592b23; }
+.urgent-after-hours-summary p { margin:0;color:inherit;font-size:.9rem;font-weight:650;line-height:1.65; }
+.urgent-after-hours-summary .urgent-action-list { margin-top:12px; }
 .urgent-after-hours-plan { margin-top:16px;padding:17px;border:1px solid #c49a52;border-radius:15px;background:#f4ead7; }
 .urgent-after-hours-plan h3 { margin:0 0 10px;color:#5a391f;font:600 1.28rem var(--app-font-serif); }
 .urgent-after-hours-plan .provider-grid { margin-top:13px; }

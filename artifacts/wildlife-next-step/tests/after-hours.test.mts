@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { directorySource, rehabilitators } from '../src/data/contacts.ts';
 import { demos, fieldOptions } from '../src/data/scenarios.ts';
-import { getRehabilitatorsForAnimal, getRehabilitatorsForCounty, getVerifiedAfterHoursOption, noConfirmedAfterHoursServiceMessage } from '../src/logic/contactDirectory.ts';
+import { getCountiesForAnimal, getRehabilitatorsForAnimal, getRehabilitatorsForCounty, getVerifiedAfterHoursOption, noConfirmedAfterHoursServiceMessage } from '../src/logic/contactDirectory.ts';
 import { isInjuredOrUrgentConcern, isUrgentConcern, routeEncounter } from '../src/logic/ruleEngine.ts';
 
 test('the DNR directory lookup returns the published contacts for a selected county', () => {
@@ -50,6 +50,16 @@ test('animal filters respect bird and injury restrictions in DNR coverage notes'
   assert.ok(notForInjuredAnimals);
   assert.deepEqual(getRehabilitatorsForAnimal([notForInjuredAnimals], 'Rabbit / hare', true), []);
   assert.deepEqual(getRehabilitatorsForAnimal([notForInjuredAnimals], 'Rabbit / hare', false), [notForInjuredAnimals]);
+});
+
+test('alternate county suggestions use matching DNR coverage and the current injury concern', () => {
+  const raccoonCounties = getCountiesForAnimal('Raccoon');
+  assert.ok(raccoonCounties.includes('Bartholomew'));
+  assert.ok(!raccoonCounties.includes('Allen'));
+  assert.deepEqual(raccoonCounties, [...raccoonCounties].sort((first, second) => first.localeCompare(second)));
+  assert.ok(getCountiesForAnimal('Rabbit / hare', false).includes('Wabash'));
+  assert.ok(!getCountiesForAnimal('Rabbit / hare', true).includes('Wabash'));
+  assert.deepEqual(getCountiesForAnimal('Unknown'), []);
 });
 
 test('no county-specific listing is invented when the DNR directory has no entry', () => {

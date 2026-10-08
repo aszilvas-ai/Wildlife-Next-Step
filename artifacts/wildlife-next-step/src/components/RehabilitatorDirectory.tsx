@@ -3,7 +3,7 @@ import { Check, Copy, ExternalLink, Moon, Phone, MessageSquare } from 'lucide-re
 import { counties } from '../data/scenarios';
 import { directorySource, type RehabilitatorContact, type VerifiedAfterHoursOption, type VerifiedContactNote } from '../data/contacts';
 import { dnrResources } from '../data/citations';
-import { getRehabilitatorsForAnimal, getVerifiedAfterHoursOption, noConfirmedAfterHoursServiceMessage } from '../logic/contactDirectory';
+import { getCountiesForAnimal, getRehabilitatorsForAnimal, getVerifiedAfterHoursOption, noConfirmedAfterHoursServiceMessage } from '../logic/contactDirectory';
 
 type ContactAction = { label: string; protocol: 'sms' | 'tel'; Icon: typeof Phone | typeof MessageSquare };
 
@@ -157,6 +157,10 @@ export function RehabilitatorDirectory({
   const HeaderIcon = isDarkPeriod ? Moon : Phone;
   const matchingContacts = getRehabilitatorsForAnimal(contacts, animalType, injuryOrUrgentConcern);
   const otherContacts = contacts.filter((contact) => !matchingContacts.includes(contact));
+  const otherMatchingCounties = county && matchingContacts.length === 0
+    ? getCountiesForAnimal(animalType, injuryOrUrgentConcern)
+      .filter((listedCounty) => listedCounty.toLowerCase() !== county.toLowerCase())
+    : [];
   const uniqueNumberCount = new Set(matchingContacts.flatMap((contact) => contact.phoneNumbers)).size;
   const animalDescription = animalType && animalType !== 'Unknown' ? animalType.toLowerCase() : 'this animal';
   const afterHoursOption = afterHoursContact ? getVerifiedAfterHoursOption(afterHoursContact) : null;
@@ -165,9 +169,18 @@ export function RehabilitatorDirectory({
     `To: ${afterHoursContact?.organization || afterHoursContact?.name || '[selected rehabilitator]'}`,
     `Animal type: ${animalType || '[animal type]'}`,
     `Approximate location: ${county ? `${county} County, near [landmark; no exact address]` : '[county and nearby landmark; no exact address]'}`,
+    'Approximate time noticed: [approximate time]',
     `Concern already observed: ${injuryConcern || '[brief concern]'}`,
+    ...(urgentConcern ? ['Urgency: This animal may need help soon'] : []),
     'Adult callback number: [adult callback number]',
   ].join('\n');
+  const handleCountyChange = (nextCounty: string) => {
+    setAfterHoursContact(null);
+    setGeneralPlanOpen(false);
+    setPlanCopyStatus('');
+    setTemplateCopyStatus('');
+    onCountyChange(nextCounty);
+  };
   const copyPlanNumber = async (number: string) => {
     try {
       await navigator.clipboard.writeText(number);
@@ -212,13 +225,7 @@ export function RehabilitatorDirectory({
           id="rehabilitator-county"
           className="field-control county-lookup"
           value={county}
-          onChange={(event) => {
-            setAfterHoursContact(null);
-            setGeneralPlanOpen(false);
-            setPlanCopyStatus('');
-            setTemplateCopyStatus('');
-            onCountyChange(event.target.value);
-          }}
+          onChange={(event) => handleCountyChange(event.target.value)}
           data-testid="select-rehabilitator-county"
         >
           <option value="">Choose a county</option>
@@ -226,6 +233,17 @@ export function RehabilitatorDirectory({
         </select>
         <p className="after-hours-message-note">County only—do not enter a street address or exact location. The selected time period helps the practice scenario; it does not confirm whether a contact is available.</p>
         <p className="after-hours-no-service" role="note">No contact is confirmed available for the selected time. The DNR directory does not list operating hours or real-time availability.</p>
+      </section>
+
+      <section className="after-hours-section" aria-labelledby="directory-caution-title">
+        <h3 id="directory-caution-title">Before contacting anyone</h3>
+        <ul className="after-hours-guidance">
+          <li>Check the animal coverage listed for each contact. Some entries are limited to specific species or situations.</li>
+          <li>Pickup and delivery terms differ by provider; check the full current DNR listing before transport.</li>
+          <li>The DNR says permitted rehabilitators make the final decision about whether they can assist.</li>
+          <li>Availability, intake, callbacks, and whether it is safe to wait are not confirmed by this app.</li>
+          <li>Do not handle, feed, give water, medicate, or transport the animal unless a qualified professional directs you.</li>
+        </ul>
       </section>
 
       {county && (
@@ -271,6 +289,22 @@ export function RehabilitatorDirectory({
                   : `No ${county} County listing in this snapshot clearly covers ${animalType} without a relevant restriction.`}
               </p>
           )}
+          {otherMatchingCounties.length > 0 && (
+            <div className="matching-county-suggestions" data-testid="matching-county-suggestions">
+              <p className="after-hours-message-note">
+                The DNR snapshot lists matching coverage for {animalType} in these other counties. Select a county to view its matching contacts. County listings do not confirm current availability or service to your exact location; confirm directly before travel.
+              </p>
+              <ul className="matching-county-list" aria-label={`Other counties with DNR listings for ${animalType}`}>
+                {otherMatchingCounties.map((listedCounty) => (
+                  <li key={listedCounty}>
+                    <button className="matching-county-button" type="button" onClick={() => handleCountyChange(listedCounty)}>
+                      {listedCounty} County
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {otherContacts.length > 0 && (
             <details className="other-provider-list" data-testid="other-provider-list">
               <summary>
@@ -297,13 +331,27 @@ export function RehabilitatorDirectory({
 
       {injuryOrUrgentConcern && (
         <section className="after-hours-section urgent-after-hours-entry" aria-labelledby="urgent-after-hours-entry-title" data-testid="urgent-after-hours-entry">
-          <h3 id="urgent-after-hours-entry-title">{urgentConcern ? 'Urgent concern after hours?' : 'If a provider is closed or does not answer'}</h3>
+          <h3 id="urgent-after-hours-entry-title">{urgentConcern ? 'Urgent after-hours situation' : 'If a provider is closed or does not answer'}</h3>
+          {urgentConcern && (
+            <div className="urgent-after-hours-summary">
+              <p role="alert" data-testid="urgent-after-hours-summary">
+                <strong>Urgent after-hours situation:</strong> This animal may need help soon. Call a rehabilitator whose published listing covers this animal and leave a detailed message; if its listing specifies another contact method, use that method. Then check another matching wildlife contact or a local 24-hour veterinary emergency option. If it is safe, keep people and pets away from the animal and follow only temporary instructions given directly by the provider. Wildlife Next Step cannot determine whether waiting is safe or provide treatment instructions.
+              </p>
+              <ol className="after-hours-guidance urgent-action-list" aria-label="Urgent actions">
+                <li><strong>Call and leave a detailed message.</strong> Call a matching rehabilitator from the list above. If none is shown, use the <a href={directorySource.url} target="_blank" rel="noreferrer">current statewide DNR directory</a> to find one whose published coverage includes this animal, and confirm it serves the county. Leave a voicemail if available; if the listing is text-only or names another contact method, use that. Include the animal type, county and nearby landmark (not an exact address), what you observed, when you noticed it, and an adult callback number. A response is not guaranteed.</li>
+                <li><strong>Check another wildlife or veterinary option.</strong> Find another rehabilitator whose published coverage includes this animal and confirm directly that it serves the county. If considering a local 24-hour veterinary emergency option, call first to confirm it currently treats wildlife; this app does not verify a local emergency clinic.</li>
+                <li><strong>Reduce immediate risks if it is safe.</strong> Keep people and pets away without approaching or moving the animal. Do not try to capture or handle it.</li>
+                <li><strong>Do not attempt treatment.</strong> Do not feed, medicate, or provide medical care. Follow only temporary instructions given directly by a qualified provider.</li>
+                <li><strong>Protect people first.</strong> If a person is in immediate danger, move to safety and contact emergency services. Do not approach wildlife.</li>
+              </ol>
+            </div>
+          )}
           <p className="after-hours-message-note">
             {matchingContacts.length
               ? 'Choose from the matching county listings above. Use a listing’s button only after you have confirmed it is closed or has not answered.'
               : 'No matching listing is confirmed for this animal and county. Open the plan for general safety steps and the current statewide directory.'}
           </p>
-          {(!county || matchingContacts.length === 0) && (
+          {((urgentConcern && !afterHoursContact) || !county || matchingContacts.length === 0) && (
             <button
               className="btn btn-primary"
               type="button"
@@ -315,7 +363,9 @@ export function RehabilitatorDirectory({
               }}
               data-testid="button-urgent-after-hours-plan"
             >
-              {generalPlanOpen ? 'Hide after-hours plan' : 'Open after-hours plan'}
+              {generalPlanOpen
+                ? (urgentConcern ? 'Hide urgent action plan' : 'Hide after-hours plan')
+                : (urgentConcern ? 'Open urgent action plan' : 'Open after-hours plan')}
             </button>
           )}
           {afterHoursPlanOpen && (
@@ -364,12 +414,18 @@ export function RehabilitatorDirectory({
                 </p>
               )}
 
-              <ol className="after-hours-plan-timeline" aria-label="After-hours steps">
-                <li><strong>Check immediate safety.</strong> If people, pets, or traffic are in immediate danger, move yourself to safety and contact local emergency services. Do not approach wildlife.</li>
-                <li><strong>Contact a suitable listing anyway.</strong> Use its published Call now or Text control and contact method. A listed after-hours recording is instructions only, not confirmation of a live response.</li>
-                <li><strong>Use a verified emergency option only if listed below.</strong> The prototype cannot infer availability from the time or provider listing.</li>
-                <li><strong>Keep distance while waiting for professional directions.</strong> Do not treat the animal or decide that waiting is safe based on this app.</li>
-              </ol>
+              {urgentConcern ? (
+                <p className="after-hours-message-note">
+                  Use the urgent actions above. This panel adds the selected listing’s contact details and a copyable message template; it does not confirm a live response.
+                </p>
+              ) : (
+                <ol className="after-hours-plan-timeline" aria-label="After-hours steps">
+                  <li><strong>Check immediate safety.</strong> If people, pets, or traffic are in immediate danger, move yourself to safety and contact local emergency services. Do not approach wildlife.</li>
+                  <li><strong>Contact a suitable listing anyway.</strong> Use its published Call now or Text control and contact method. A listed after-hours recording is instructions only, not confirmation of a live response.</li>
+                  <li><strong>Use a verified emergency option only if listed below.</strong> The prototype cannot infer availability from the time or provider listing.</li>
+                  <li><strong>Keep distance while waiting for professional directions.</strong> Do not treat the animal or decide that waiting is safe based on this app.</li>
+                </ol>
+              )}
 
               {afterHoursOption ? (
                 <VerifiedAfterHoursOptionCard option={afterHoursOption} />
@@ -393,7 +449,7 @@ export function RehabilitatorDirectory({
               </div>
 
               <div className="after-hours-message-template">
-                <h4>Copyable message template</h4>
+                <h4>{urgentConcern ? 'Detailed message template' : 'Copyable message template'}</h4>
                 <p className="after-hours-message-note">Use only as a draft. This classroom prototype is not for sending real animal reports. Do not include an exact address.</p>
                 <pre>{messageTemplate}</pre>
                 <button className="btn btn-copy" type="button" onClick={copyMessageTemplate}>
@@ -422,22 +478,30 @@ export function RehabilitatorDirectory({
       )}
 
         <section className="after-hours-section after-hours-no-answer" aria-labelledby="no-answer-title" data-testid="no-answer-guide">
-          <h3 id="no-answer-title">If it’s after hours or no one answers</h3>
-          <p className="after-hours-message-note">
-            The DNR directory does not publish rehabilitator hours. The selected time of day cannot tell whether anyone is available, and this guide cannot determine whether an animal can safely wait.
-          </p>
-          <ol className="after-hours-guidance">
-            <li><strong>Try another suitable option.</strong> Check another listed number or provider whose DNR animal-coverage entry fits. If there is only one local number, search the current statewide directory and confirm directly that another provider serves the county before travel.</li>
-            <li><strong>Use the contact method shown.</strong> If the listing permits voicemail or text, leave one brief message with the county, animal type if known, visible concern, and an adult’s callback number. A reply is not guaranteed; no reply does not mean the animal is safe to wait.</li>
-            <li><strong>Keep your distance while seeking advice.</strong> Keep children and pets away, avoid crowding the animal, and do not approach to get a closer look.</li>
-            <li><strong>Do not try to capture or handle it.</strong> Containment is only appropriate if a qualified professional confirms that it is safe. Do not transport the animal unless a qualified professional directs you.</li>
-            <li><strong>If it is already safely contained, do not move or disturb it.</strong> Keep it quiet, dark, secure, and ventilated without changing its setup.</li>
-            <li><strong>Do not attempt care.</strong> Do not feed, give water, medicate, or treat the animal unless a qualified professional directly instructs you.</li>
-            <li><strong>For a young animal without an obvious injury, don’t assume it is abandoned just because no adult is visible.</strong> Indiana DNR notes that adults may be out of sight and that people nearby can keep them from returning. Check the DNR guidance below.</li>
-          </ol>
-          <p className="after-hours-no-service" role="note">
-            This is not a “wait until morning” decision guide. If people, pets, or traffic are in immediate danger, move yourself to safety and contact local emergency services; do not approach the wildlife.
-          </p>
+          <h3 id="no-answer-title">{urgentConcern ? 'More official wildlife resources' : 'If it’s after hours or no one answers'}</h3>
+          {urgentConcern ? (
+            <p className="after-hours-message-note">
+              The links below provide current DNR information. This prototype does not verify local veterinary emergency hours or wildlife intake; call before traveling.
+            </p>
+          ) : (
+            <>
+              <p className="after-hours-message-note">
+                The DNR directory does not publish rehabilitator hours. The selected time of day cannot tell whether anyone is available, and this guide cannot determine whether an animal can safely wait.
+              </p>
+              <ol className="after-hours-guidance">
+                <li><strong>Try another suitable option.</strong> Check another listed number or provider whose DNR animal-coverage entry fits. If there is only one local number, search the current statewide directory and confirm directly that another provider serves the county before travel.</li>
+                <li><strong>Use the contact method shown.</strong> If the listing permits voicemail or text, leave one brief message with the county, animal type if known, visible concern, and an adult’s callback number. A reply is not guaranteed; no reply does not mean the animal is safe to wait.</li>
+                <li><strong>Keep your distance while seeking advice.</strong> Keep children and pets away, avoid crowding the animal, and do not approach to get a closer look.</li>
+                <li><strong>Do not try to capture or handle it.</strong> Containment is only appropriate if a qualified professional confirms that it is safe. Do not transport the animal unless a qualified professional directs you.</li>
+                <li><strong>If it is already safely contained, do not move or disturb it.</strong> Keep it quiet, dark, secure, and ventilated without changing its setup.</li>
+                <li><strong>Do not attempt care.</strong> Do not feed, give water, medicate, or treat the animal unless a qualified professional directly instructs you.</li>
+                <li><strong>For a young animal without an obvious injury, don’t assume it is abandoned just because no adult is visible.</strong> Indiana DNR notes that adults may be out of sight and that people nearby can keep them from returning. Check the DNR guidance below.</li>
+              </ol>
+              <p className="after-hours-no-service" role="note">
+                This is not a “wait until morning” decision guide. If people, pets, or traffic are in immediate danger, move yourself to safety and contact local emergency services; do not approach the wildlife.
+              </p>
+            </>
+          )}
           <div className="after-hours-resource-links" aria-label="Other official information">
             <a className="after-hours-resource" href={directorySource.url} target="_blank" rel="noreferrer">
               <strong>Current statewide rehabilitator directory</strong>
@@ -454,17 +518,6 @@ export function RehabilitatorDirectory({
             </div>
           </div>
         </section>
-
-      <section className="after-hours-section" aria-labelledby="directory-caution-title">
-        <h3 id="directory-caution-title">Before contacting anyone</h3>
-        <ul className="after-hours-guidance">
-          <li>Check the animal coverage listed for each contact. Some entries are limited to specific species or situations.</li>
-          <li>Pickup and delivery terms differ by provider; check the full current DNR listing before transport.</li>
-          <li>The DNR says permitted rehabilitators make the final decision about whether they can assist.</li>
-          <li>Availability, intake, callbacks, and whether it is safe to wait are not confirmed by this app.</li>
-          <li>Do not handle, feed, give water, medicate, or transport the animal unless a qualified professional directs you.</li>
-        </ul>
-      </section>
 
       <details className="after-hours-why">
         <summary>About this directory</summary>

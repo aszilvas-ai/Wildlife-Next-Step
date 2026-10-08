@@ -58,6 +58,12 @@ export function getRehabilitatorsForAnimal(
   return contacts.filter((contact) => includesAnimalCoverage(contact, animalType, injuryOrUrgentConcern));
 }
 
+export function getCountiesForAnimal(animalType: string, injuryOrUrgentConcern = false): string[] {
+  const matchingCounties = getRehabilitatorsForAnimal(rehabilitators, animalType, injuryOrUrgentConcern)
+    .flatMap((contact) => contact.counties);
+  return Array.from(new Set(matchingCounties)).sort((first, second) => first.localeCompare(second));
+}
+
 export function getVerifiedAfterHoursOption(contact: RehabilitatorContact): VerifiedAfterHoursOption | null {
   const option = contact.afterHoursOption;
   if (
