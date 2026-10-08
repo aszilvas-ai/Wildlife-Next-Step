@@ -105,9 +105,14 @@ button { cursor: pointer; }
 .form-nav { display:flex;justify-content:space-between;align-items:center;margin-top:32px;gap:10px; }
 .review-list { display:grid;gap:8px; }
 .review-row { display:grid;grid-template-columns:1fr auto;gap:15px;align-items:center;padding:14px 15px;background:#f3efe3;border-radius:12px; }
+.review-row.needs-answer { background:#fff0ec;border:1px solid #d6a294; }
 .review-row span { display:block;font-size:.76rem;color:#697769;margin-bottom:4px; }
 .review-row strong {font-size:.91rem;font-weight:600;}
 .review-edit {color:#31583f;border:0;background:none;text-decoration:underline;text-underline-offset:3px;font-weight:700;font-size:.82rem;}
+.missing-answer-badge { display:block;margin-top:6px;color:#9b4337;font-size:.76rem;font-style:normal;font-weight:700; }
+.more-info-message { margin:10px 0 22px;font-weight:600; }
+.more-info-fields h2 { margin:0 0 14px;font-size:1.05rem; }
+.more-info-help { margin:16px 0 0; }
 .result-head { display:flex;gap:14px;align-items:flex-start;margin-bottom:24px; }
 .result-icon { display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;border-radius:16px;background:#e5eddf;color:#31583f;font-size:1.3rem;font-weight:700; }
 .result-title { font:600 clamp(1.8rem,3.6vw,2.7rem)/1.08 var(--app-font-serif);margin:0 0 7px;letter-spacing:-.035em; }

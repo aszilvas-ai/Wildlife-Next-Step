@@ -3,7 +3,7 @@ import test from 'node:test';
 import { directorySource, rehabilitators } from '../src/data/contacts.ts';
 import { demos, fieldOptions } from '../src/data/scenarios.ts';
 import { getCountiesForAnimal, getRehabilitatorsForAnimal, getRehabilitatorsForCounty, getVerifiedAfterHoursOption, noConfirmedAfterHoursServiceMessage } from '../src/logic/contactDirectory.ts';
-import { isInjuredOrUrgentConcern, isUrgentConcern, routeEncounter } from '../src/logic/ruleEngine.ts';
+import { getMissingRequiredFields, isInjuredOrUrgentConcern, isUrgentConcern, MORE_INFORMATION_NEEDED_MESSAGE, requiredAnswerFields, routeEncounter } from '../src/logic/ruleEngine.ts';
 
 test('the DNR directory lookup returns the published contacts for a selected county', () => {
   const monroeContacts = getRehabilitatorsForCounty('Monroe');
@@ -102,7 +102,7 @@ test('a source-backed after-hours option needs a phone, source, and verification
 });
 
 test('high-risk concerns route urgently for every animal type', () => {
-  const base = demos.find((demo) => demo.id === 'after-hours-bleeding')?.answers;
+  const base = demos.find((demo) => demo.id === 'bleeding-squirrel')?.answers;
   assert.ok(base);
   const highRiskConcerns = [
     'Visible bleeding',
@@ -113,7 +113,7 @@ test('high-risk concerns route urgently for every animal type', () => {
     'Animal in traffic',
     'Other urgent concern',
   ];
-  for (const animal of fieldOptions.animal) {
+  for (const animal of fieldOptions.animal.slice(0, -1)) {
     for (const injury of highRiskConcerns) {
       const encounter = { ...base, animal, injury };
       assert.equal(isUrgentConcern(encounter), true, `${injury} should be urgent for ${animal}`);
@@ -124,9 +124,9 @@ test('high-risk concerns route urgently for every animal type', () => {
 });
 
 test('other visible injuries route to a rehabilitator without using the red urgent status', () => {
-  const base = demos.find((demo) => demo.id === 'after-hours-bleeding')?.answers;
+  const base = demos.find((demo) => demo.id === 'bleeding-squirrel')?.answers;
   assert.ok(base);
-  for (const animal of fieldOptions.animal) {
+  for (const animal of fieldOptions.animal.slice(0, -1)) {
     const encounter = { ...base, animal, injury: 'Other visible injury' };
     assert.equal(isInjuredOrUrgentConcern(encounter), true);
     assert.equal(isUrgentConcern(encounter), false);
@@ -149,24 +149,26 @@ test('an unknown time period does not cause professional contact or make claims 
   assert.equal(routeEncounter(unknownPeriod).outcome, 'observe');
 });
 
-test('the evening injury demo has several directory contacts without asserting any are open', () => {
-  const scenario = demos.find((demo) => demo.id === 'after-hours-bleeding');
-  assert.ok(scenario, 'after-hours demo scenario should exist');
+test('quick examples omit the evening injury scenario without changing evening injury routing', () => {
+  const scenario = demos.find((demo) => demo.id === 'bleeding-squirrel');
+  assert.ok(scenario);
+  assert.ok(!demos.some((demo) => demo.id === 'after-hours-bleeding'));
+  const eveningScenario = { ...scenario.answers, timeOfDay: 'Dusk / evening (5–9 p.m.)' };
 
-  assert.equal(routeEncounter(scenario.answers).outcome, 'professional');
-  assert.ok(getRehabilitatorsForCounty(scenario.answers.county).length > 1);
+  assert.equal(routeEncounter(eveningScenario).outcome, 'professional');
+  assert.ok(getRehabilitatorsForCounty(eveningScenario.county).length > 1);
 });
 
-test('unclear safety answers request clarification without routing to professional contact', () => {
+test('unclear required answers show the exact more-information result instead of a contact recommendation', () => {
   const scenario = demos.find((demo) => demo.id === 'healthy-squirrel');
   assert.ok(scenario);
   assert.equal(routeEncounter(scenario.answers).outcome, 'observe');
 
   const uncertainCase = { ...scenario.answers, injury: 'Not sure' };
   const result = routeEncounter(uncertainCase);
-  assert.equal(result.outcome, 'clarify');
-  assert.match(result.reason, /safety details are missing or unclear/);
-  assert.doesNotMatch(result.reason, /visible injury/i);
+  assert.equal(result.outcome, 'moreInfo');
+  assert.equal(result.reason, MORE_INFORMATION_NEEDED_MESSAGE);
+  assert.deepEqual(getMissingRequiredFields(uncertainCase), ['injury']);
 });
 
 test('reported movement problems, immediate danger, and weakness or distress route to professional help', () => {
@@ -186,19 +188,17 @@ test('reported movement problems, immediate danger, and weakness or distress rou
   }
 });
 
-test('missing or unclear required safety answers list follow-up fields before any final route', () => {
+test('blank and unknown required answers are marked before any final route', () => {
   const scenario = demos.find((demo) => demo.id === 'healthy-squirrel');
   assert.ok(scenario);
-  for (const field of ['injury', 'movement', 'danger', 'condition'] as const) {
-    const result = routeEncounter({ ...scenario.answers, [field]: '' });
-    assert.equal(result.outcome, 'clarify');
-    if (result.outcome === 'clarify') assert.ok(result.fields.includes(field));
+  for (const field of requiredAnswerFields) {
+    for (const value of ['', 'Not sure', 'Unknown']) {
+      const encounter = { ...scenario.answers, [field]: value };
+      const result = routeEncounter(encounter);
+      assert.equal(result.outcome, 'moreInfo', `${field}=${value} must request more information`);
+      assert.ok(getMissingRequiredFields(encounter).includes(field));
+    }
   }
-  const youngScenario = demos.find((demo) => demo.id === 'baby-at-dusk');
-  assert.ok(youngScenario);
-  const uncertainParent = routeEncounter({ ...youngScenario.answers, parentSeen: 'Not sure' });
-  assert.equal(uncertainParent.outcome, 'clarify');
-  if (uncertainParent.outcome === 'clarify') assert.ok(uncertainParent.fields.includes('parentSeen'));
 });
 
 test('a reported high-risk concern waits for missing safety details, then routes to professional help', () => {
@@ -206,31 +206,46 @@ test('a reported high-risk concern waits for missing safety details, then routes
   assert.ok(scenario);
   const incompleteReport = { ...scenario.answers, injury: 'Visible bleeding', movement: 'Not sure' };
   const followUp = routeEncounter(incompleteReport);
-  assert.equal(followUp.outcome, 'clarify');
-  if (followUp.outcome === 'clarify') assert.deepEqual(followUp.fields, ['movement']);
+  assert.equal(followUp.outcome, 'moreInfo');
+  if (followUp.outcome === 'moreInfo') assert.deepEqual(followUp.fields, ['movement']);
 
   const clarifiedReport = { ...incompleteReport, movement: 'Moving normally' };
   assert.equal(routeEncounter(clarifiedReport).outcome, 'professional');
 });
 
-test('animal type, time, appearance uncertainty, parent not seen, and actions do not trigger contact', () => {
+test('an unknown animal type pauses even a reported high-risk concern until a best guess is supplied', () => {
+  const scenario = demos.find((demo) => demo.id === 'healthy-squirrel');
+  assert.ok(scenario);
+  const incompleteReport = { ...scenario.answers, animal: 'Unknown', injury: 'Visible bleeding' };
+  const result = routeEncounter(incompleteReport);
+  assert.equal(result.outcome, 'moreInfo');
+  assert.deepEqual(getMissingRequiredFields(incompleteReport), ['animal']);
+
+  assert.equal(routeEncounter({ ...incompleteReport, animal: 'Bird' }).outcome, 'professional');
+});
+
+test('uncertain non-required details and a parent not seen do not trigger contact', () => {
   const scenario = demos.find((demo) => demo.id === 'healthy-squirrel');
   assert.ok(scenario);
   const unrelatedDetails = {
     ...scenario.answers,
-    animal: 'Unknown',
+    animal: 'Other mammal',
     timeOfDay: 'Not sure',
     appearance: 'Unclear / not sure',
-    parentSeen: 'Not sure',
+    parentSeen: 'No — not seen',
     actions: ['Moved the animal', 'Other / not sure'],
   };
   assert.equal(routeEncounter(unrelatedDetails).outcome, 'observe');
+
+  const unknownAnimal = { ...unrelatedDetails, animal: 'Unknown' };
+  assert.equal(routeEncounter(unknownAnimal).outcome, 'moreInfo');
+  assert.deepEqual(getMissingRequiredFields(unknownAnimal), ['animal']);
 });
 
 test('healthy young wildlife is routed to observation with the required parent caveat', () => {
   const scenario = demos.find((demo) => demo.id === 'baby-at-dusk');
   assert.ok(scenario);
-  const notSeen = { ...scenario.answers, parentSeen: 'No parent seen nearby' };
+  const notSeen = { ...scenario.answers, parentSeen: 'No — not seen' };
   const result = routeEncounter(notSeen);
   assert.equal(result.outcome, 'observe');
   assert.match(result.reason, /Young wildlife may appear alone even when a parent is nearby\. This prototype cannot confirm that an animal is healthy or orphaned\./);

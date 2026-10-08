@@ -95,21 +95,6 @@ export const demos: DemoScenario[] = [
       actions: ['Observed from a distance'],
     },
   },
-  {
-    id: 'after-hours-bleeding',
-    label: 'Evening injury scenario',
-    description: 'A fictional evening scenario; the official directory does not publish provider hours.',
-    answers: {
-      county: 'Monroe', timeOfDay: 'Dusk / evening (5–9 p.m.)', animal: 'Squirrel',
-      appearance: 'Small / juvenile',
-      injury: 'Visible bleeding',
-      movement: 'Moving normally',
-      danger: 'No immediate danger reported',
-      condition: 'No weakness, coldness, or distress reported',
-      parentSeen: 'Yes — seen',
-      actions: ['Kept people and pets away'],
-    },
-  },
 ];
 
 export const fieldOptions = {

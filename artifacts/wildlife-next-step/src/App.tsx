@@ -230,6 +230,7 @@ function Review({
   onBack: () => void;
   onShowResult: () => void;
 }) {
+  const missingFields = new Set(getMissingRequiredFields(encounter));
   return (
     <main className="shell flow-wrap">
       <div className="progress-top"><span>CHECK BEFORE ROUTING</span><span>Review</span></div>
@@ -239,8 +240,18 @@ function Review({
         <p className="step-help">You can change any answer. The routing rules use only these in-memory responses.</p>
         <div className="review-list">
           {fields.map((field, index) => (
-            <div className="review-row" key={field} data-testid={`review-row-${field}`}>
-              <div><span>{fieldTitles[field]}</span><strong>{formatAnswer(field, encounter[field])}</strong></div>
+            <div
+              className={`review-row${requiredAnswerFields.includes(field as RequiredAnswerField) && missingFields.has(field as RequiredAnswerField) ? ' needs-answer' : ''}`}
+              key={field}
+              data-testid={`review-row-${field}`}
+            >
+              <div>
+                <span>{fieldTitles[field]}</span>
+                <strong>{formatAnswer(field, encounter[field])}</strong>
+                {requiredAnswerFields.includes(field as RequiredAnswerField) && missingFields.has(field as RequiredAnswerField) && (
+                  <em className="missing-answer-badge">Needs a meaningful answer</em>
+                )}
+              </div>
               <button className="review-edit" onClick={() => onEdit(index)} data-testid={`button-edit-${field}`}>Edit</button>
             </div>
           ))}
@@ -254,58 +265,40 @@ function Review({
   );
 }
 
-function Clarification({
-  encounter, onAnswer, onResolved, onBack,
+function MoreInformationNeeded({
+  encounter, onEdit, onRestart, onReview,
 }: {
   encounter: Encounter;
-  onAnswer: (field: SafetyField, value: string) => void;
-  onResolved: () => void;
-  onBack: () => void;
+  onEdit: (field: RequiredAnswerField) => void;
+  onRestart: () => void;
+  onReview: () => void;
 }) {
-  const [stillUnclear, setStillUnclear] = useState(false);
-  const fields = getClarificationFields(encounter);
-  const checkAnswers = () => {
-    const route = routeEncounter(encounter);
-    if (route.outcome === 'clarify') {
-      setStillUnclear(true);
-      return;
-    }
-    onResolved();
-  };
+  const missingFields = getMissingRequiredFields(encounter);
 
   return (
     <main className="shell flow-wrap">
-      <div className="progress-top"><span>SAFETY CHECK</span><span>Follow-up</span></div>
-      <section className="form-card" aria-labelledby="clarification-title">
-        <div className="step-kicker"><CircleAlert size={16} /> CLARIFY BEFORE ROUTING</div>
-        <h1 className="step-title" id="clarification-title">A few safety details need clarification.</h1>
-        <p className="step-help">Use only what is already known. Do not approach or handle wildlife to answer these questions. Animal type, time of day, parent not seen, and actions taken do not trigger professional contact by themselves.</p>
-        {fields.map((field) => (
-          <section className="clarification-question" key={field} aria-labelledby={`clarify-${field}-title`}>
-            <h2 className="step-title" id={`clarify-${field}-title`} style={{ fontSize: '1.2rem', marginTop: 22 }}>
-              {fieldStepTitles[field]}
-            </h2>
-            <OptionGroup
-              options={fieldOptions[field]}
-              value={encounter[field]}
-              onChange={(value) => {
-                if (typeof value === 'string') {
-                  onAnswer(field, value);
-                  setStillUnclear(false);
-                }
-              }}
-              testPrefix={`clarify-${field}`}
-            />
-          </section>
-        ))}
-        {stillUnclear && (
-          <p className="field-error" role="status" data-testid="text-clarification-unresolved">
-            These safety details are still unclear, so the app cannot show a final route. Do not approach to find out; ask a trusted adult for help.
-          </p>
-        )}
+      <section className="form-card" aria-labelledby="more-info-title">
+        <div className="step-kicker"><CircleAlert size={16} /> INPUT CHECK</div>
+        <h1 className="result-title" id="more-info-title" data-testid="result-title">More information needed</h1>
+        <p className="result-sub more-info-message" data-testid="more-information-message">{MORE_INFORMATION_NEEDED_MESSAGE}</p>
+        <section className="result-panel more-info-fields" aria-labelledby="missing-fields-title">
+          <h2 id="missing-fields-title">Answer the marked questions</h2>
+          <div className="review-list">
+            {missingFields.map((field) => (
+              <div className="review-row needs-answer" key={field} data-testid={`missing-field-${field}`}>
+                <div>
+                  <span>{fieldTitles[field]} · needs an answer</span>
+                  <strong>{formatAnswer(field, encounter[field])}</strong>
+                </div>
+                <button className="review-edit" onClick={() => onEdit(field)} data-testid={`button-answer-${field}`}>Answer</button>
+              </div>
+            ))}
+          </div>
+          <p className="step-help more-info-help">A missing or unknown answer is not a reason by itself to contact a rehabilitator. If you cannot provide the requested details, restart with more information.</p>
+        </section>
         <div className="form-nav">
-          <button className="btn btn-quiet" type="button" onClick={onBack} data-testid="button-clarification-back"><ArrowLeft size={16} /> Review answers</button>
-          <button className="btn btn-primary" type="button" onClick={checkAnswers} data-testid="button-check-clarification">Check details <ArrowRight size={16} /></button>
+          <button className="btn btn-quiet" type="button" onClick={onRestart} data-testid="button-restart"><RotateCcw size={16} /> Start over</button>
+          <button className="btn btn-primary" type="button" onClick={onReview} data-testid="button-more-info-review">Review all answers <ArrowRight size={16} /></button>
         </div>
       </section>
     </main>
@@ -321,7 +314,7 @@ function Result({
   onCountyChange: (county: string) => void;
 }) {
   const route = routeEncounter(encounter);
-  if (route.outcome === 'clarify') return null;
+  if (route.outcome === 'moreInfo') return null;
   const result = outcomeContent[route.outcome];
   const contacts = encounter.county ? getRehabilitatorsForCounty(encounter.county) : [];
   const urgentConcern = isUrgentConcern(encounter);
@@ -393,7 +386,7 @@ function App() {
   const [formStartStep, setFormStartStep] = useState(0);
 
   useEffect(() => {
-    if (screen === 'result' || screen === 'clarify') scrollPageToTop();
+    if (screen === 'result' || screen === 'moreInfo') scrollPageToTop();
   }, [screen]);
 
   const start = () => {
@@ -404,10 +397,10 @@ function App() {
   };
   const startDemo = (answers: Encounter) => {
     setEncounter({ ...answers, actions: [...answers.actions] });
-    setScreen(routeEncounter(answers).outcome === 'clarify' ? 'clarify' : 'result');
+    setScreen(routeEncounter(answers).outcome === 'moreInfo' ? 'moreInfo' : 'result');
   };
   const routeToNextStep = (answers: Encounter) => {
-    setScreen(routeEncounter(answers).outcome === 'clarify' ? 'clarify' : 'result');
+    setScreen(routeEncounter(answers).outcome === 'moreInfo' ? 'moreInfo' : 'result');
   };
   const editAnswer = (index: number) => {
     setFormStartStep(index);
@@ -429,12 +422,12 @@ function App() {
         />
       )}
       {screen === 'review' && <Review encounter={encounter} onEdit={editAnswer} onBack={() => setScreen('form')} onShowResult={() => routeToNextStep(encounter)} />}
-      {screen === 'clarify' && (
-        <Clarification
+      {screen === 'moreInfo' && (
+        <MoreInformationNeeded
           encounter={encounter}
-          onAnswer={(field, value) => setEncounter((current) => ({ ...current, [field]: value }))}
-          onResolved={() => setScreen('result')}
-          onBack={() => setScreen('review')}
+          onEdit={(field) => editAnswer(fields.indexOf(field))}
+          onRestart={start}
+          onReview={() => setScreen('review')}
         />
       )}
       {screen === 'result' && (

@@ -3,8 +3,8 @@ name: Wildlife decision routing
 description: Product rules for separating reported safety risks from species/context and unresolved information.
 ---
 
-Base professional-contact recommendations on reported safety concerns, not animal type, time of day, a parent not being seen, or actions already taken. Missing or unclear required safety details call for follow-up questions before any final route; uncertainty alone is not a reason to recommend professional contact. Reported injury, movement problems, immediate danger, or weakness, coldness, or distress may route to professional guidance once required safety details are clear.
+Base professional-contact recommendations on reported safety concerns, not animal type, time of day, a parent not being seen, or actions already taken. Before a final route, require meaningful answers for animal type or best guess, injury or urgent concern, movement, immediate danger, and parent/adult animal seen; also retain the weakness/coldness/distress safety check. Blank, unknown, or “not sure” required answers show a “More information needed” result with the unanswered questions marked. Uncertainty alone is not a reason to recommend professional contact. Reported risk may route to professional guidance once required answers are clear.
 
-**Why:** The user requires cautious decisions to respond to reported risk without treating species, context, or uncertainty alone as evidence that an animal needs a rehabilitator.
+**Why:** The user requires meaningful information before a supported path can be shown, and does not want missing information treated as evidence that an animal needs a rehabilitator.
 
-**How to apply:** Preserve this distinction in rule changes, form questions, demos, and tests. For young wildlife, do not treat a parent not being seen by itself as a reason to recommend contact.
+**How to apply:** Preserve this distinction in rule changes, form questions, demos, and tests. Mark missing answers and let users return to those questions. For young wildlife, do not treat a parent not being seen by itself as a reason to recommend contact.
