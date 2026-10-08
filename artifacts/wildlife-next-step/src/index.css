@@ -48,7 +48,7 @@ button { cursor: pointer; }
 .brand-mark { width: 34px; height: 34px; border-radius: 12px 12px 12px 4px; background: #31583f; color: #f4eddb; display:grid; place-items:center; font-family: var(--app-font-serif); font-size: 19px; }
 .header-note { color: #667467; font-size: .82rem; }
 .hero { position:relative; isolation:isolate; display:flex; align-items:center; min-height:500px; padding:76px 0 72px; background-color:hsl(var(--background)); background-position:center right; background-repeat:no-repeat; background-size:cover; }
-.hero::before { content:""; position:absolute; inset:0; z-index:0; pointer-events:none; background:linear-gradient(to bottom,transparent 0%,transparent 78%,hsl(var(--background) / .35) 90%,hsl(var(--background)) 100%),linear-gradient(90deg,hsl(var(--background)) 0%,hsl(var(--background)) 54%,hsl(var(--background) / .96) 64%,hsl(var(--background) / .74) 76%,hsl(var(--background) / .3) 90%,hsl(var(--background) / .08) 100%); }
+ .hero::before { content:""; position:absolute; inset:0; z-index:0; pointer-events:none; background:linear-gradient(to bottom,transparent 0%,transparent 84%,hsl(var(--background) / .18) 93%,hsl(var(--background)) 100%),linear-gradient(90deg,hsl(var(--background)) 0%,hsl(var(--background)) 44%,hsl(var(--background) / .94) 50%,hsl(var(--background) / .72) 58%,hsl(var(--background) / .38) 66%,hsl(var(--background) / .14) 76%,transparent 88%); }
 .hero-content { position:relative; z-index:1; }
 .hero-content > div { max-width:600px; }
 .hero h1 { font: 600 clamp(2.7rem, 5.1vw, 4.55rem)/1.04 var(--app-font-serif); letter-spacing: -.045em; margin: 20px 0 20px; max-width: 660px; }
@@ -216,7 +216,7 @@ button { cursor: pointer; }
 @media (max-width:760px) {
  .shell { width:min(100% - 30px, 560px); }
   .hero { display:block; min-height:unset; padding:49px 0 46px; background-position:68% bottom; background-size:max(100%,640px) auto; }
-  .hero::before { background:linear-gradient(to bottom,hsl(var(--background)) 0%,hsl(var(--background)) 58%,hsl(var(--background) / .86) 70%,hsl(var(--background) / .56) 82%,hsl(var(--background) / .28) 93%,hsl(var(--background)) 100%); }
+    .hero::before { background:linear-gradient(to bottom,hsl(var(--background)) 0%,hsl(var(--background)) 62%,hsl(var(--background) / .82) 67%,hsl(var(--background) / .58) 74%,hsl(var(--background) / .32) 82%,hsl(var(--background) / .12) 92%,hsl(var(--background)) 100%); }
  .hero h1 { font-size:clamp(2.6rem,12vw,4rem); }
  .demo-grid { grid-template-columns:1fr; }
  .demo-card { min-height:unset; }

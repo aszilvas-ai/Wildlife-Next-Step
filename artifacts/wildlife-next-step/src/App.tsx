@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import heroArtwork from '@assets/image_1791386276304.png';
+import heroArtwork from '@assets/wildlife_banner_cleaned.png';
 import { ArrowLeft, ArrowRight, Check, ChevronRight, CircleAlert, RotateCcw, ShieldCheck } from 'lucide-react';
 import { SiteHeader, PrototypeNotice, Progress } from './components/SiteHeader';
 import { RehabilitatorDirectory } from './components/RehabilitatorDirectory';
