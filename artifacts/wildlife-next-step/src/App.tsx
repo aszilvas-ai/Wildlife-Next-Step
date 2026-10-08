@@ -6,9 +6,9 @@ import { RehabilitatorDirectory } from './components/RehabilitatorDirectory';
 import { SourcesPanel } from './components/ReferencePanel';
 import { demos, emptyEncounter, fieldOptions, fieldTitles, formatAnswer, type Encounter, type OutcomeId } from './data/scenarios';
 import { getRehabilitatorsForCounty } from './logic/contactDirectory';
-import { getClarificationFields, isInjuredOrUrgentConcern, isUrgentConcern, routeEncounter, type SafetyField } from './logic/ruleEngine';
+import { getMissingRequiredFields, isInjuredOrUrgentConcern, isUrgentConcern, MORE_INFORMATION_NEEDED_MESSAGE, requiredAnswerFields, routeEncounter, type RequiredAnswerField } from './logic/ruleEngine';
 
-type Screen = 'home' | 'form' | 'review' | 'clarify' | 'result';
+type Screen = 'home' | 'form' | 'review' | 'moreInfo' | 'result';
 
 function scrollPageToTop() {
   if (typeof window === 'undefined') return;
@@ -23,13 +23,13 @@ type FormField = Exclude<keyof Encounter, 'county'>;
 const fields: FormField[] = ['timeOfDay', 'animal', 'appearance', 'injury', 'movement', 'danger', 'condition', 'parentSeen', 'actions'];
 const fieldHelp: Record<FormField, string> = {
   timeOfDay: 'Choose the closest time period. It helps the practice route but does not confirm provider availability.',
-  animal: 'This is a rough category for a fictional scenario, not a species identification.',
+  animal: 'Choose the closest category or best guess. If you select “Unknown,” the app will ask for more information before suggesting a path.',
   appearance: 'Only select what the scenario tells you. Do not approach to check.',
-  injury: 'Do not get closer to assess. Select only what is already described; “Not sure” leads to a follow-up.',
+  injury: 'Do not get closer to assess. Select only what is already described. “Not sure” will be marked as needing more information.',
   movement: 'Choose only what is already known. Do not approach to test the animal’s movement.',
   danger: 'Choose only what is already known. Do not approach or try to move the animal.',
   condition: 'Choose only what is already described. Do not approach to check for weakness, coldness, or distress.',
-  parentSeen: 'A parent may be nearby even if you have not seen one.',
+  parentSeen: 'If no parent or adult animal was seen, one may still be nearby. Not seeing one does not by itself trigger professional contact.',
   actions: 'Choose all that apply. Select “No action yet” if nothing has been done.',
 };
 const fieldStepTitles: Record<FormField, string> = {
@@ -40,7 +40,7 @@ const fieldStepTitles: Record<FormField, string> = {
   movement: 'Is the animal moving normally?',
   danger: 'Is there immediate danger?',
   condition: 'Are weakness, coldness, or distress reported?',
-  parentSeen: 'Was a parent animal seen?',
+  parentSeen: 'Was a parent or adult animal seen nearby?',
   actions: 'What has already happened?',
 };
 
@@ -57,7 +57,7 @@ const outcomeContent: Record<OutcomeId, { title: string; subtitle: string; check
     safety: [
       'This is a cautious practice suggestion, not a health assessment or species confirmation.',
       'Do not touch, feed, give water, or attempt to treat wildlife.',
-      'If a safety detail is missing or unclear, answer the follow-up questions before choosing a route. Uncertainty alone does not trigger professional contact.',
+      'If a required answer is missing or unclear, return to the More information needed screen before choosing a route. Uncertainty alone does not trigger professional contact.',
     ],
   },
   professional: {
@@ -125,7 +125,7 @@ function Home({ onStart, onDemo }: { onStart: () => void; onDemo: (answers: Enco
               <div className="how-list">
                  <div className="how-item"><b>1</b><div><h3>Use fictional details</h3><p>Answer a few simple prompts. County is requested only if the next step recommends professional contact; never enter an exact location.</p></div></div>
                 <div className="how-item"><b>2</b><div><h3>Check your answers</h3><p>Review everything and edit any response before seeing a suggested practice route.</p></div></div>
-                 <div className="how-item"><b>3</b><div><h3>Learn a cautious next step</h3><p>Reported safety concerns may lead to professional guidance. Missing or unclear safety details trigger follow-up questions first. Nothing is saved or sent.</p></div></div>
+                 <div className="how-item"><b>3</b><div><h3>Learn a cautious next step</h3><p>Reported safety concerns may lead to professional guidance. Missing or unclear required answers show a More information needed result instead of automatically recommending contact.</p></div></div>
               </div>
             </div>
           </section>
@@ -186,18 +186,12 @@ function FormFlow({
   startStep: number;
 }) {
   const [step, setStep] = useState(startStep);
-  const [error, setError] = useState('');
   const key = fields[step];
   const goNext = () => {
-    const value = encounter[key];
-    const isValid = key === 'actions' ? (value as string[]).length > 0 : Boolean(value);
-    if (!isValid) { setError(key === 'actions' ? 'Choose one or more actions, including “No action yet” if appropriate.' : 'Choose an answer to continue.'); return; }
-    setError('');
     if (step === fields.length - 1) onReview();
     else setStep(step + 1);
   };
   const update = (value: string | string[]) => {
-    setError('');
     setEncounter({ ...encounter, [key]: value });
   };
   const back = () => {
@@ -218,7 +212,6 @@ function FormFlow({
           multiple={key === 'actions'}
           testPrefix={`option-${key}`}
         />
-        {error && <p className="field-error" role="alert" data-testid="text-form-error">{error}</p>}
         <div className="form-nav">
           <button className="btn btn-quiet" type="button" onClick={back} data-testid="button-back"><ArrowLeft size={16} />{step === 0 ? 'Cancel' : 'Back'}</button>
           <button className="btn btn-primary" type="button" onClick={goNext} data-testid="button-continue">{step === fields.length - 1 ? 'Review answers' : 'Continue'}<ArrowRight size={16} /></button>

@@ -1,17 +1,22 @@
 import type { Encounter, OutcomeId } from '../data/scenarios';
 
-export type SafetyField = 'injury' | 'movement' | 'danger' | 'condition' | 'parentSeen';
+export const requiredAnswerFields = [
+  'animal',
+  'injury',
+  'movement',
+  'danger',
+  'condition',
+  'parentSeen',
+] as const;
+
+export type RequiredAnswerField = (typeof requiredAnswerFields)[number];
 
 export type RoutingResult =
-  | {
-      outcome: OutcomeId;
-      reason: string;
-    }
-  | {
-      outcome: 'clarify';
-      reason: string;
-      fields: SafetyField[];
-    };
+  | { outcome: OutcomeId; reason: string }
+  | { outcome: 'moreInfo'; reason: string; fields: RequiredAnswerField[] };
+
+export const MORE_INFORMATION_NEEDED_MESSAGE =
+  'Wildlife Next Step does not have enough information to suggest a supported path. Please answer the questions marked below or restart with more details.';
 
 const urgentInjuryAnswers = new Set([
   'visible bleeding',
@@ -47,7 +52,8 @@ const urgentConditionAnswers = new Set([
   'distressed',
 ]);
 
-const clearAnswers: Record<Exclude<SafetyField, 'parentSeen'>, Set<string>> = {
+const validRequiredAnswers: Record<RequiredAnswerField, Set<string>> = {
+  animal: new Set(['squirrel', 'rabbit / hare', 'bird', 'raccoon', 'other mammal']),
   injury: new Set(['no visible injury', ...visibleInjuryAnswers]),
   movement: new Set(['moving normally', ...urgentMovementAnswers]),
   danger: new Set(['no immediate danger reported', ...urgentDangerAnswers]),
@@ -55,10 +61,8 @@ const clearAnswers: Record<Exclude<SafetyField, 'parentSeen'>, Set<string>> = {
     'no weakness, coldness, or distress reported',
     ...urgentConditionAnswers,
   ]),
+  parentSeen: new Set(['yes — seen', 'no — not seen']),
 };
-
-const unsureAnswer = (value: string) =>
-  !value.trim() || /not sure|uncertain|unclear|unknown/i.test(value);
 
 const answerIs = (value: string, answers: Set<string>) =>
   answers.has(value.trim().toLowerCase());
@@ -67,20 +71,10 @@ export function isYoungAnimal(encounter: Pick<Encounter, 'appearance'>): boolean
   return /young|baby|juvenile|little fur|eyes closed/i.test(encounter.appearance);
 }
 
-export function getClarificationFields(encounter: Encounter): SafetyField[] {
-  const fields: SafetyField[] = (Object.keys(clearAnswers) as Array<keyof typeof clearAnswers>)
-    .filter((field) => unsureAnswer(encounter[field]) || !clearAnswers[field].has(encounter[field].trim().toLowerCase()));
-
-  if (
-    isYoungAnimal(encounter)
-    && (
-      unsureAnswer(encounter.parentSeen)
-      || encounter.parentSeen === 'Not a young animal'
-    )
-  ) {
-    fields.push('parentSeen');
-  }
-  return fields;
+export function getMissingRequiredFields(encounter: Encounter): RequiredAnswerField[] {
+  return requiredAnswerFields.filter((field) =>
+    !validRequiredAnswers[field].has(encounter[field].trim().toLowerCase()),
+  );
 }
 
 export function isUrgentConcern(
@@ -106,12 +100,12 @@ export function isInjuredOrUrgentConcern(
  * veterinary guidance, or a substitute for a licensed rehabilitator.
  */
 export function routeEncounter(a: Encounter): RoutingResult {
-  const unclearFields = getClarificationFields(a);
-  if (unclearFields.length > 0) {
+  const missingFields = getMissingRequiredFields(a);
+  if (missingFields.length > 0) {
     return {
-      outcome: 'clarify',
-      reason: 'One or more safety details are missing or unclear. Clarify them from what is already known before choosing a next step; do not approach the animal to check.',
-      fields: unclearFields,
+      outcome: 'moreInfo',
+      reason: MORE_INFORMATION_NEEDED_MESSAGE,
+      fields: missingFields,
     };
   }
 
