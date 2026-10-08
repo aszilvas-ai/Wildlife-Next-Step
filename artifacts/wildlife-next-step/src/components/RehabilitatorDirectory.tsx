@@ -3,7 +3,7 @@ import { Check, Copy, ExternalLink, Moon, Phone, MessageSquare } from 'lucide-re
 import { counties } from '../data/scenarios';
 import { directorySource, type RehabilitatorContact, type VerifiedAfterHoursOption, type VerifiedContactNote } from '../data/contacts';
 import { dnrResources } from '../data/citations';
-import { getVerifiedAfterHoursOption, noConfirmedAfterHoursServiceMessage } from '../logic/contactDirectory';
+import { getRehabilitatorsForAnimal, getVerifiedAfterHoursOption, noConfirmedAfterHoursServiceMessage } from '../logic/contactDirectory';
 
 type ContactAction = { label: string; protocol: 'sms' | 'tel'; Icon: typeof Phone | typeof MessageSquare };
 
@@ -155,7 +155,10 @@ export function RehabilitatorDirectory({
   const [templateCopyStatus, setTemplateCopyStatus] = useState('');
   const isDarkPeriod = /early morning|dusk|evening|night/i.test(timeOfDay);
   const HeaderIcon = isDarkPeriod ? Moon : Phone;
-  const uniqueNumberCount = new Set(contacts.flatMap((contact) => contact.phoneNumbers)).size;
+  const matchingContacts = getRehabilitatorsForAnimal(contacts, animalType, injuryOrUrgentConcern);
+  const otherContacts = contacts.filter((contact) => !matchingContacts.includes(contact));
+  const uniqueNumberCount = new Set(matchingContacts.flatMap((contact) => contact.phoneNumbers)).size;
+  const animalDescription = animalType && animalType !== 'Unknown' ? animalType.toLowerCase() : 'this animal';
   const afterHoursOption = afterHoursContact ? getVerifiedAfterHoursOption(afterHoursContact) : null;
   const afterHoursPlanOpen = Boolean(afterHoursContact || generalPlanOpen);
   const messageTemplate = [
@@ -191,7 +194,7 @@ export function RehabilitatorDirectory({
           <h2 id="rehabilitator-directory-title">
             {county ? `Permitted rehabilitators for ${county} County` : 'Find permitted rehabilitators'}
           </h2>
-          <p>The DNR list itself does not publish operating hours or real-time availability. Some providers publish separate contact notes below; being listed does not guarantee a provider can help with this animal or respond now.</p>
+          <p>The DNR list itself does not publish operating hours or real-time availability. The main list is limited to entries whose published coverage includes {animalType || 'the selected animal'} and does not conflict with a stated restriction. This does not guarantee intake or a live response.</p>
         </div>
       </header>
 
@@ -227,14 +230,19 @@ export function RehabilitatorDirectory({
 
       {county && (
         <section className="after-hours-section" aria-labelledby="provider-options-title">
-            <h3 id="provider-options-title">{county} County contact options</h3>
-          {contacts.length ? (
+            <h3 id="provider-options-title">{county} County listings for {animalType || 'the selected animal'}</h3>
+          {matchingContacts.length ? (
               <>
                 <p className="after-hours-message-note" data-testid="county-contact-count">
-                  This snapshot has {contacts.length} DNR listing{contacts.length === 1 ? '' : 's'} and {uniqueNumberCount} distinct phone number{uniqueNumberCount === 1 ? '' : 's'}. Some listings share a number. Check each provider’s animal coverage and intake terms before choosing.
+                  This snapshot has {matchingContacts.length} DNR listing{matchingContacts.length === 1 ? '' : 's'} whose published coverage includes {animalType}, with {uniqueNumberCount} distinct phone number{uniqueNumberCount === 1 ? '' : 's'}. Some listings share a number.
                 </p>
+                {(animalType === 'Bird' || animalType === 'Other mammal') && (
+                  <p className="after-hours-message-note">
+                    This is a broad animal category. Only general coverage without a stated subtype exclusion is shown as a match; confirm the exact species and intake directly.
+                  </p>
+                )}
                 <div className="provider-grid">
-                  {contacts.map((contact) => (
+                  {matchingContacts.map((contact) => (
                     <ProviderCard
                       key={`${contact.name}-${contact.phoneNumbers.join('-')}`}
                       contact={contact}
@@ -252,14 +260,31 @@ export function RehabilitatorDirectory({
                 </div>
                 {uniqueNumberCount < 2 && (
                   <p className="after-hours-no-service" role="note">
-                    This snapshot has only one distinct phone number for {county} County. Check the live DNR directory for changes or other suitable listings; a provider listed for another county may not serve this location.
+                    This snapshot has only one distinct phone number among the matching {county} County listings. Check the live DNR directory for changes; a provider listed for another county may not serve this location.
                   </p>
                 )}
               </>
           ) : (
-              <p className="after-hours-no-service">
-                No provider serving {county} County appears in this dated directory snapshot. This does not confirm that no rehabilitator serves the area; check the current Indiana DNR directory for updates.
+              <p className="after-hours-no-service" role="note" data-testid="no-animal-matches">
+                {animalType === 'Unknown' || !animalType
+                  ? 'The animal type is unknown, so this snapshot cannot confirm a provider match.'
+                  : `No ${county} County listing in this snapshot clearly covers ${animalType} without a relevant restriction.`}
               </p>
+          )}
+          {otherContacts.length > 0 && (
+            <details className="other-provider-list" data-testid="other-provider-list">
+              <summary>
+                View {otherContacts.length} other county listing{otherContacts.length === 1 ? '' : 's'} not confirmed for {animalDescription}
+              </summary>
+              <p className="after-hours-message-note">
+                These listings do not clearly include {animalDescription} in their published coverage or have a stated restriction that prevents a confirmed match. They are not shown as suitable options; check the full DNR listing and confirm directly before relying on one.
+              </p>
+              <div className="provider-grid">
+                {otherContacts.map((contact) => (
+                  <ProviderCard key={`${contact.name}-${contact.phoneNumbers.join('-')}`} contact={contact} />
+                ))}
+              </div>
+            </details>
           )}
             <a className="directory-link" href={directorySource.url} target="_blank" rel="noreferrer">
               Search the current statewide DNR directory <ExternalLink size={14} aria-hidden="true" />
@@ -274,11 +299,11 @@ export function RehabilitatorDirectory({
         <section className="after-hours-section urgent-after-hours-entry" aria-labelledby="urgent-after-hours-entry-title" data-testid="urgent-after-hours-entry">
           <h3 id="urgent-after-hours-entry-title">{urgentConcern ? 'Urgent concern after hours?' : 'If a provider is closed or does not answer'}</h3>
           <p className="after-hours-message-note">
-            {contacts.length
-              ? 'Review the county listings and choose a contact whose published animal coverage fits. Use the button on a listing only after you have confirmed it is closed or has not answered.'
-              : 'Choose a county to review local listings. If this snapshot has no suitable contact, open the plan for general safety steps and the current statewide directory.'}
+            {matchingContacts.length
+              ? 'Choose from the matching county listings above. Use a listing’s button only after you have confirmed it is closed or has not answered.'
+              : 'No matching listing is confirmed for this animal and county. Open the plan for general safety steps and the current statewide directory.'}
           </p>
-          {(!county || contacts.length === 0) && (
+          {(!county || matchingContacts.length === 0) && (
             <button
               className="btn btn-primary"
               type="button"
