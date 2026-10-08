@@ -161,6 +161,10 @@ button { cursor: pointer; }
 .after-hours-no-service { padding:13px 15px;border-left:3px solid #c49a52;border-radius:0 11px 11px 0;background:#f1ead9;color:#514b3c;font-size:.86rem;line-height:1.6; }
 .after-hours-alternatives { display:grid;gap:9px; }
 .provider-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
+.other-provider-list { margin-top:17px;padding-top:15px;border-top:1px solid #ddd5c3; }
+.other-provider-list > summary { width:fit-content;color:#31583f;font-size:.88rem;font-weight:750;text-decoration:underline;text-underline-offset:3px;cursor:pointer; }
+.other-provider-list[open] > summary { margin-bottom:10px; }
+.other-provider-list .provider-grid { margin-top:14px; }
 .provider-card { min-width:0; }
 .provider-badge { display:inline-block;background:#e7d6ad;color:#5c461d;border-radius:5px;padding:3px 6px;font-size:.65rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px; }
 .provider-organization { color:#293d52!important;font-weight:700; }

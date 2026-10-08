@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { directorySource, rehabilitators } from '../src/data/contacts.ts';
 import { demos, fieldOptions } from '../src/data/scenarios.ts';
-import { getRehabilitatorsForCounty, getVerifiedAfterHoursOption, noConfirmedAfterHoursServiceMessage } from '../src/logic/contactDirectory.ts';
+import { getRehabilitatorsForAnimal, getRehabilitatorsForCounty, getVerifiedAfterHoursOption, noConfirmedAfterHoursServiceMessage } from '../src/logic/contactDirectory.ts';
 import { isInjuredOrUrgentConcern, isUrgentConcern, routeEncounter } from '../src/logic/ruleEngine.ts';
 
 test('the DNR directory lookup returns the published contacts for a selected county', () => {
@@ -22,6 +22,34 @@ test('county contact choices distinguish provider listings from distinct phone n
   const brownContacts = getRehabilitatorsForCounty('Brown');
   assert.equal(brownContacts.length, 2);
   assert.equal(new Set(brownContacts.flatMap((contact) => contact.phoneNumbers)).size, 1);
+});
+
+test('animal filtering keeps only DNR listings whose published coverage fits the selected animal', () => {
+  const bartholomewContacts = getRehabilitatorsForCounty('Bartholomew');
+  assert.deepEqual(
+    getRehabilitatorsForAnimal(bartholomewContacts, 'Raccoon').map((contact) => contact.name),
+    ['Emily Barga'],
+  );
+  assert.deepEqual(
+    getRehabilitatorsForAnimal(bartholomewContacts, 'Bird').map((contact) => contact.name),
+    ['Kathy Hershey'],
+  );
+  assert.deepEqual(getRehabilitatorsForAnimal(bartholomewContacts, 'Other mammal'), []);
+  assert.deepEqual(
+    getRehabilitatorsForAnimal(getRehabilitatorsForCounty('Blackford'), 'Other mammal').map((contact) => contact.name),
+    ['Judi Crouch'],
+  );
+  assert.deepEqual(getRehabilitatorsForAnimal(bartholomewContacts, 'Unknown'), []);
+});
+
+test('animal filters respect bird and injury restrictions in DNR coverage notes', () => {
+  const madisonContacts = getRehabilitatorsForCounty('Madison');
+  assert.deepEqual(getRehabilitatorsForAnimal(madisonContacts, 'Bird'), []);
+
+  const notForInjuredAnimals = rehabilitators.find((contact) => /not injured animals/i.test(contact.animals));
+  assert.ok(notForInjuredAnimals);
+  assert.deepEqual(getRehabilitatorsForAnimal([notForInjuredAnimals], 'Rabbit / hare', true), []);
+  assert.deepEqual(getRehabilitatorsForAnimal([notForInjuredAnimals], 'Rabbit / hare', false), [notForInjuredAnimals]);
 });
 
 test('no county-specific listing is invented when the DNR directory has no entry', () => {
