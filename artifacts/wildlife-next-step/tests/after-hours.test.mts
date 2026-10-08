@@ -141,12 +141,12 @@ test('no visible injury and uncertainty are not mislabeled as urgent injury repo
   assert.equal(isInjuredOrUrgentConcern({ injury: 'Not sure' }), false);
 });
 
-test('an unknown time period routes conservatively without claiming contact hours ended', () => {
-  const scenario = demos.find((demo) => demo.id === 'bleeding-squirrel');
+test('an unknown time period does not cause professional contact or make claims about contact hours', () => {
+  const scenario = demos.find((demo) => demo.id === 'healthy-squirrel');
   assert.ok(scenario);
   const unknownPeriod = { ...scenario.answers, timeOfDay: 'Not sure' };
 
-  assert.equal(routeEncounter(unknownPeriod).outcome, 'professional');
+  assert.equal(routeEncounter(unknownPeriod).outcome, 'observe');
 });
 
 test('the evening injury demo has several directory contacts without asserting any are open', () => {
@@ -157,16 +157,83 @@ test('the evening injury demo has several directory contacts without asserting a
   assert.ok(getRehabilitatorsForCounty(scenario.answers.county).length > 1);
 });
 
-test('no visible injury is not described as an injury when another answer requires guidance', () => {
+test('unclear safety answers request clarification without routing to professional contact', () => {
   const scenario = demos.find((demo) => demo.id === 'healthy-squirrel');
   assert.ok(scenario);
   assert.equal(routeEncounter(scenario.answers).outcome, 'observe');
 
-  const uncertainCase = { ...scenario.answers, parentSeen: 'Not sure' };
+  const uncertainCase = { ...scenario.answers, injury: 'Not sure' };
   const result = routeEncounter(uncertainCase);
-  assert.equal(result.outcome, 'professional');
-  assert.match(result.reason, /Some details are uncertain/);
+  assert.equal(result.outcome, 'clarify');
+  assert.match(result.reason, /safety details are missing or unclear/);
   assert.doesNotMatch(result.reason, /visible injury/i);
+});
+
+test('reported movement problems, immediate danger, and weakness or distress route to professional help', () => {
+  const scenario = demos.find((demo) => demo.id === 'healthy-squirrel');
+  assert.ok(scenario);
+  const reportedConcerns = [
+    { movement: 'Unable to move normally' },
+    { danger: 'Immediate danger: traffic or nearby pet' },
+    { danger: 'Other immediate danger' },
+    { condition: 'Weak, cold, or distressed' },
+  ];
+  for (const concern of reportedConcerns) {
+    const encounter = { ...scenario.answers, ...concern };
+    assert.equal(routeEncounter(encounter).outcome, 'professional');
+    assert.equal(isInjuredOrUrgentConcern(encounter), true);
+    assert.equal(isUrgentConcern(encounter), true);
+  }
+});
+
+test('missing or unclear required safety answers list follow-up fields before any final route', () => {
+  const scenario = demos.find((demo) => demo.id === 'healthy-squirrel');
+  assert.ok(scenario);
+  for (const field of ['injury', 'movement', 'danger', 'condition'] as const) {
+    const result = routeEncounter({ ...scenario.answers, [field]: '' });
+    assert.equal(result.outcome, 'clarify');
+    if (result.outcome === 'clarify') assert.ok(result.fields.includes(field));
+  }
+  const youngScenario = demos.find((demo) => demo.id === 'baby-at-dusk');
+  assert.ok(youngScenario);
+  const uncertainParent = routeEncounter({ ...youngScenario.answers, parentSeen: 'Not sure' });
+  assert.equal(uncertainParent.outcome, 'clarify');
+  if (uncertainParent.outcome === 'clarify') assert.ok(uncertainParent.fields.includes('parentSeen'));
+});
+
+test('a reported high-risk concern waits for missing safety details, then routes to professional help', () => {
+  const scenario = demos.find((demo) => demo.id === 'healthy-squirrel');
+  assert.ok(scenario);
+  const incompleteReport = { ...scenario.answers, injury: 'Visible bleeding', movement: 'Not sure' };
+  const followUp = routeEncounter(incompleteReport);
+  assert.equal(followUp.outcome, 'clarify');
+  if (followUp.outcome === 'clarify') assert.deepEqual(followUp.fields, ['movement']);
+
+  const clarifiedReport = { ...incompleteReport, movement: 'Moving normally' };
+  assert.equal(routeEncounter(clarifiedReport).outcome, 'professional');
+});
+
+test('animal type, time, appearance uncertainty, parent not seen, and actions do not trigger contact', () => {
+  const scenario = demos.find((demo) => demo.id === 'healthy-squirrel');
+  assert.ok(scenario);
+  const unrelatedDetails = {
+    ...scenario.answers,
+    animal: 'Unknown',
+    timeOfDay: 'Not sure',
+    appearance: 'Unclear / not sure',
+    parentSeen: 'Not sure',
+    actions: ['Moved the animal', 'Other / not sure'],
+  };
+  assert.equal(routeEncounter(unrelatedDetails).outcome, 'observe');
+});
+
+test('healthy young wildlife is routed to observation with the required parent caveat', () => {
+  const scenario = demos.find((demo) => demo.id === 'baby-at-dusk');
+  assert.ok(scenario);
+  const notSeen = { ...scenario.answers, parentSeen: 'No parent seen nearby' };
+  const result = routeEncounter(notSeen);
+  assert.equal(result.outcome, 'observe');
+  assert.match(result.reason, /Young wildlife may appear alone even when a parent is nearby\. This prototype cannot confirm that an animal is healthy or orphaned\./);
 });
 
 test('missing county alone does not cause a recommendation to contact a rehabilitator', () => {

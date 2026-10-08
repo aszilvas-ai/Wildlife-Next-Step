@@ -1,37 +1,104 @@
 import type { Encounter, OutcomeId } from '../data/scenarios';
 
-export type RoutingResult = {
-  outcome: OutcomeId;
-  reason: string;
+export type SafetyField = 'injury' | 'movement' | 'danger' | 'condition' | 'parentSeen';
+
+export type RoutingResult =
+  | {
+      outcome: OutcomeId;
+      reason: string;
+    }
+  | {
+      outcome: 'clarify';
+      reason: string;
+      fields: SafetyField[];
+    };
+
+const urgentInjuryAnswers = new Set([
+  'visible bleeding',
+  'serious injury',
+  'unable to move',
+  'suspected broken limb',
+  'trouble breathing',
+  'animal in traffic',
+  'other urgent concern',
+]);
+
+const visibleInjuryAnswers = new Set([
+  ...urgentInjuryAnswers,
+  'other visible injury',
+]);
+
+const urgentMovementAnswers = new Set([
+  'unable to move normally',
+  'trouble moving',
+  'having trouble moving',
+]);
+
+const urgentDangerAnswers = new Set([
+  'immediate danger: traffic or nearby pet',
+  'other immediate danger',
+  'animal in traffic',
+]);
+
+const urgentConditionAnswers = new Set([
+  'weak, cold, or distressed',
+  'weak',
+  'cold',
+  'distressed',
+]);
+
+const clearAnswers: Record<Exclude<SafetyField, 'parentSeen'>, Set<string>> = {
+  injury: new Set(['no visible injury', ...visibleInjuryAnswers]),
+  movement: new Set(['moving normally', ...urgentMovementAnswers]),
+  danger: new Set(['no immediate danger reported', ...urgentDangerAnswers]),
+  condition: new Set([
+    'no weakness, coldness, or distress reported',
+    ...urgentConditionAnswers,
+  ]),
 };
 
-const injuryReportedAnswers = new Set([
-  'visible bleeding',
-  'serious injury',
-  'other visible injury',
-  'unable to move',
-  'suspected broken limb',
-  'trouble breathing',
-  'animal in traffic',
-  'other urgent concern',
-]);
+const unsureAnswer = (value: string) =>
+  !value.trim() || /not sure|uncertain|unclear|unknown/i.test(value);
 
-const urgentConcernAnswers = new Set([
-  'visible bleeding',
-  'serious injury',
-  'unable to move',
-  'suspected broken limb',
-  'trouble breathing',
-  'animal in traffic',
-  'other urgent concern',
-]);
+const answerIs = (value: string, answers: Set<string>) =>
+  answers.has(value.trim().toLowerCase());
 
-export function isUrgentConcern(a: Pick<Encounter, 'injury'>): boolean {
-  return urgentConcernAnswers.has(a.injury.trim().toLowerCase());
+export function isYoungAnimal(encounter: Pick<Encounter, 'appearance'>): boolean {
+  return /young|baby|juvenile|little fur|eyes closed/i.test(encounter.appearance);
 }
 
-export function isInjuredOrUrgentConcern(a: Pick<Encounter, 'injury'>): boolean {
-  return injuryReportedAnswers.has(a.injury.trim().toLowerCase());
+export function getClarificationFields(encounter: Encounter): SafetyField[] {
+  const fields: SafetyField[] = (Object.keys(clearAnswers) as Array<keyof typeof clearAnswers>)
+    .filter((field) => unsureAnswer(encounter[field]) || !clearAnswers[field].has(encounter[field].trim().toLowerCase()));
+
+  if (
+    isYoungAnimal(encounter)
+    && (
+      unsureAnswer(encounter.parentSeen)
+      || encounter.parentSeen === 'Not a young animal'
+    )
+  ) {
+    fields.push('parentSeen');
+  }
+  return fields;
+}
+
+export function isUrgentConcern(
+  a: Partial<Pick<Encounter, 'injury' | 'movement' | 'danger' | 'condition'>>,
+): boolean {
+  return answerIs(a.injury ?? '', urgentInjuryAnswers)
+    || answerIs(a.movement ?? '', urgentMovementAnswers)
+    || answerIs(a.danger ?? '', urgentDangerAnswers)
+    || answerIs(a.condition ?? '', urgentConditionAnswers);
+}
+
+export function isInjuredOrUrgentConcern(
+  a: Partial<Pick<Encounter, 'injury' | 'movement' | 'danger' | 'condition'>>,
+): boolean {
+  return answerIs(a.injury ?? '', visibleInjuryAnswers)
+    || answerIs(a.movement ?? '', urgentMovementAnswers)
+    || answerIs(a.danger ?? '', urgentDangerAnswers)
+    || answerIs(a.condition ?? '', urgentConditionAnswers);
 }
 
 /**
@@ -39,63 +106,27 @@ export function isInjuredOrUrgentConcern(a: Pick<Encounter, 'injury'>): boolean 
  * veterinary guidance, or a substitute for a licensed rehabilitator.
  */
 export function routeEncounter(a: Encounter): RoutingResult {
-  const injury = a.injury.toLowerCase();
-  const injuryReported = isInjuredOrUrgentConcern(a);
-  const injuryUnclear = ![
-    'no visible injury',
-    'visible bleeding',
-    'serious injury',
-    'other visible injury',
-    'unable to move',
-    'suspected broken limb',
-    'trouble breathing',
-    'animal in traffic',
-    'other urgent concern',
-  ].includes(injury);
-  const uncertain = [a.timeOfDay, a.animal, a.appearance, a.parentSeen].some((v) =>
-    !v || /not sure|uncertain|unclear|unknown|other/.test(v.toLowerCase()),
-  );
-  const conflictingActions = a.actions.some((action) =>
-    /moved|touched|handled|already contained|other|not sure/i.test(action),
-  );
+  const unclearFields = getClarificationFields(a);
+  if (unclearFields.length > 0) {
+    return {
+      outcome: 'clarify',
+      reason: 'One or more safety details are missing or unclear. Clarify them from what is already known before choosing a next step; do not approach the animal to check.',
+      fields: unclearFields,
+    };
+  }
 
-  if (injuryReported || injuryUnclear || uncertain || conflictingActions) {
+  if (isInjuredOrUrgentConcern(a)) {
     return {
       outcome: 'professional',
-      reason: injuryReported
-        ? isUrgentConcern(a)
-          ? 'A reported urgent concern needs prompt professional guidance. Contact a permitted wildlife rehabilitator rather than trying to assess or treat it yourself.'
-          : 'A reported visible injury is a reason to contact a permitted wildlife rehabilitator for directions rather than trying to assess or treat it yourself.'
-        : 'Some details are uncertain or actions have already been taken. A permitted wildlife rehabilitator can give situation-specific directions.',
+      reason: 'A reported injury, movement problem, immediate danger, or sign of weakness, coldness, or distress needs professional guidance. Contact a permitted wildlife rehabilitator rather than trying to assess or treat it yourself.',
     };
   }
 
-  const squirrelAdult = /squirrel/i.test(a.animal)
-    && /nearly full-sized/i.test(a.appearance)
-    && /run, jump, and climb/i.test(a.appearance)
-    && a.parentSeen === 'No'
-    && /early morning|morning|afternoon/i.test(a.timeOfDay);
-  if (squirrelAdult) {
-    return {
-      outcome: 'observe',
-      reason: 'This fictional example describes a nearly full-sized squirrel able to move normally, with no visible injury. The cautious next step is to give it space and observe from a distance.',
-    };
-  }
-
-  const youngSquirrelAtDusk = /squirrel/i.test(a.animal)
-    && /young \/ baby/i.test(a.appearance)
-    && /dusk|evening|night/i.test(a.timeOfDay)
-    && a.parentSeen === 'No'
-    && a.injury === 'No visible injury';
-  if (youngSquirrelAtDusk) {
-    return {
-      outcome: 'holding',
-      reason: 'In this fictional example, a young squirrel remains at dusk and no parent has been seen. Contact a permitted rehabilitator immediately for directions; short-term safe holding is only a cautious fallback while arranging professional help.',
-    };
-  }
-
+  const youngWildlifeNote = isYoungAnimal(a)
+    ? ' Young wildlife may appear alone even when a parent is nearby. This prototype cannot confirm that an animal is healthy or orphaned.'
+    : '';
   return {
-    outcome: 'professional',
-    reason: 'This combination does not fit a low-risk example in the local rules. For uncertainty or situations outside these examples, contact a permitted wildlife rehabilitator for directions.',
+    outcome: 'observe',
+    reason: `No injury, movement problem, immediate danger, weakness, coldness, or distress was reported. Leave the animal where it is and observe from a safe distance.${youngWildlifeNote}`,
   };
 }

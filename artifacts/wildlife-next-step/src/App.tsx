@@ -6,9 +6,9 @@ import { RehabilitatorDirectory } from './components/RehabilitatorDirectory';
 import { SourcesPanel } from './components/ReferencePanel';
 import { demos, emptyEncounter, fieldOptions, fieldTitles, formatAnswer, type Encounter, type OutcomeId } from './data/scenarios';
 import { getRehabilitatorsForCounty } from './logic/contactDirectory';
-import { isInjuredOrUrgentConcern, isUrgentConcern, routeEncounter } from './logic/ruleEngine';
+import { getClarificationFields, isInjuredOrUrgentConcern, isUrgentConcern, routeEncounter, type SafetyField } from './logic/ruleEngine';
 
-type Screen = 'home' | 'form' | 'review' | 'result';
+type Screen = 'home' | 'form' | 'review' | 'clarify' | 'result';
 
 function scrollPageToTop() {
   if (typeof window === 'undefined') return;
@@ -20,12 +20,15 @@ function scrollPageToTop() {
 
 type FormField = Exclude<keyof Encounter, 'county'>;
 
-const fields: FormField[] = ['timeOfDay', 'animal', 'appearance', 'injury', 'parentSeen', 'actions'];
+const fields: FormField[] = ['timeOfDay', 'animal', 'appearance', 'injury', 'movement', 'danger', 'condition', 'parentSeen', 'actions'];
 const fieldHelp: Record<FormField, string> = {
   timeOfDay: 'Choose the closest time period. It helps the practice route but does not confirm provider availability.',
   animal: 'This is a rough category for a fictional scenario, not a species identification.',
   appearance: 'Only select what the scenario tells you. Do not approach to check.',
-  injury: 'Do not get closer to assess. Select only a concern already described; “Not sure” is valid.',
+  injury: 'Do not get closer to assess. Select only what is already described; “Not sure” leads to a follow-up.',
+  movement: 'Choose only what is already known. Do not approach to test the animal’s movement.',
+  danger: 'Choose only what is already known. Do not approach or try to move the animal.',
+  condition: 'Choose only what is already described. Do not approach to check for weakness, coldness, or distress.',
   parentSeen: 'A parent may be nearby even if you have not seen one.',
   actions: 'Choose all that apply. Select “No action yet” if nothing has been done.',
 };
@@ -34,6 +37,9 @@ const fieldStepTitles: Record<FormField, string> = {
   animal: 'What type of animal might it be?',
   appearance: 'What does the fictional scenario describe?',
   injury: 'Is any injury or urgent concern described?',
+  movement: 'Is the animal moving normally?',
+  danger: 'Is there immediate danger?',
+  condition: 'Are weakness, coldness, or distress reported?',
   parentSeen: 'Was a parent animal seen?',
   actions: 'What has already happened?',
 };
@@ -46,12 +52,12 @@ const outcomeContent: Record<OutcomeId, { title: string; subtitle: string; check
       'Leave the animal where it is; do not pick it up or try to move it.',
       'Observe from a distance without crowding, calling to, or following it.',
       'Keep children and pets well away.',
-      'If details change or you become unsure, contact a permitted wildlife rehabilitator for directions.',
+      'If a safety answer changes to a reported concern, ask a trusted adult to contact a permitted wildlife rehabilitator for directions.',
     ],
     safety: [
       'This is a cautious practice suggestion, not a health assessment or species confirmation.',
       'Do not touch, feed, give water, or attempt to treat wildlife.',
-      'If there is a visible injury or any uncertainty, choose professional contact instead.',
+      'If a safety detail is missing or unclear, answer the follow-up questions before choosing a route. Uncertainty alone does not trigger professional contact.',
     ],
   },
   professional: {
@@ -66,21 +72,6 @@ const outcomeContent: Record<OutcomeId, { title: string; subtitle: string; check
     safety: [
       'Do not handle, feed, give water, medicate, or try to treat the animal.',
       'Keep people and pets away and do not attempt to capture it.',
-      'Call or text the listed contact before transport. Directory entries do not guarantee availability or acceptance.',
-    ],
-  },
-  holding: {
-    title: 'Short-term safe holding while arranging professional help',
-    subtitle: 'Prioritize contacting a permitted wildlife rehabilitator immediately. This limited fallback is only about reducing disturbance while you arrange professional help.',
-    checklist: [
-      'Ask a trusted adult to contact a permitted wildlife rehabilitator immediately for directions.',
-      'If professional advice cannot be reached right away, focus only on minimizing disturbance and keeping people and pets away.',
-      'If the animal is already contained, do not disturb it while asking a permitted rehabilitator for directions.',
-      'Follow professional directions as soon as you receive them; do not transport unless advised.',
-    ],
-    safety: [
-      'This is not treatment or care guidance. Do not handle, feed, give water, use medicine, or take other treatment steps.',
-      'Keep the setting quiet and minimize disturbance; keep people and pets away.',
       'Call or text the listed contact before transport. Directory entries do not guarantee availability or acceptance.',
     ],
   },
@@ -134,7 +125,7 @@ function Home({ onStart, onDemo }: { onStart: () => void; onDemo: (answers: Enco
               <div className="how-list">
                  <div className="how-item"><b>1</b><div><h3>Use fictional details</h3><p>Answer a few simple prompts. County is requested only if the next step recommends professional contact; never enter an exact location.</p></div></div>
                 <div className="how-item"><b>2</b><div><h3>Check your answers</h3><p>Review everything and edit any response before seeing a suggested practice route.</p></div></div>
-                <div className="how-item"><b>3</b><div><h3>Learn a cautious next step</h3><p>Local example rules favor professional advice when details are unclear or risk is higher. Nothing is saved or sent.</p></div></div>
+                 <div className="how-item"><b>3</b><div><h3>Learn a cautious next step</h3><p>Reported safety concerns may lead to professional guidance. Missing or unclear safety details trigger follow-up questions first. Nothing is saved or sent.</p></div></div>
               </div>
             </div>
           </section>
@@ -270,6 +261,64 @@ function Review({
   );
 }
 
+function Clarification({
+  encounter, onAnswer, onResolved, onBack,
+}: {
+  encounter: Encounter;
+  onAnswer: (field: SafetyField, value: string) => void;
+  onResolved: () => void;
+  onBack: () => void;
+}) {
+  const [stillUnclear, setStillUnclear] = useState(false);
+  const fields = getClarificationFields(encounter);
+  const checkAnswers = () => {
+    const route = routeEncounter(encounter);
+    if (route.outcome === 'clarify') {
+      setStillUnclear(true);
+      return;
+    }
+    onResolved();
+  };
+
+  return (
+    <main className="shell flow-wrap">
+      <div className="progress-top"><span>SAFETY CHECK</span><span>Follow-up</span></div>
+      <section className="form-card" aria-labelledby="clarification-title">
+        <div className="step-kicker"><CircleAlert size={16} /> CLARIFY BEFORE ROUTING</div>
+        <h1 className="step-title" id="clarification-title">A few safety details need clarification.</h1>
+        <p className="step-help">Use only what is already known. Do not approach or handle wildlife to answer these questions. Animal type, time of day, parent not seen, and actions taken do not trigger professional contact by themselves.</p>
+        {fields.map((field) => (
+          <section className="clarification-question" key={field} aria-labelledby={`clarify-${field}-title`}>
+            <h2 className="step-title" id={`clarify-${field}-title`} style={{ fontSize: '1.2rem', marginTop: 22 }}>
+              {fieldStepTitles[field]}
+            </h2>
+            <OptionGroup
+              options={fieldOptions[field]}
+              value={encounter[field]}
+              onChange={(value) => {
+                if (typeof value === 'string') {
+                  onAnswer(field, value);
+                  setStillUnclear(false);
+                }
+              }}
+              testPrefix={`clarify-${field}`}
+            />
+          </section>
+        ))}
+        {stillUnclear && (
+          <p className="field-error" role="status" data-testid="text-clarification-unresolved">
+            These safety details are still unclear, so the app cannot show a final route. Do not approach to find out; ask a trusted adult for help.
+          </p>
+        )}
+        <div className="form-nav">
+          <button className="btn btn-quiet" type="button" onClick={onBack} data-testid="button-clarification-back"><ArrowLeft size={16} /> Review answers</button>
+          <button className="btn btn-primary" type="button" onClick={checkAnswers} data-testid="button-check-clarification">Check details <ArrowRight size={16} /></button>
+        </div>
+      </section>
+    </main>
+  );
+}
+
 function Result({
   encounter, onRestart, onReview, onCountyChange,
 }: {
@@ -279,11 +328,11 @@ function Result({
   onCountyChange: (county: string) => void;
 }) {
   const route = routeEncounter(encounter);
+  if (route.outcome === 'clarify') return null;
   const result = outcomeContent[route.outcome];
   const contacts = encounter.county ? getRehabilitatorsForCounty(encounter.county) : [];
   const urgentConcern = isUrgentConcern(encounter);
   const injuryOrUrgentConcern = isInjuredOrUrgentConcern(encounter);
-  const alreadyContained = encounter.actions.includes('Already contained');
   return (
     <main className="shell flow-wrap">
       <section className="form-card" aria-labelledby="result-title">
@@ -320,19 +369,7 @@ function Result({
             <ul className="checklist">{result.safety.map((item) => <li key={item}>{item}</li>)}</ul>
           </section>
         </div>
-        {alreadyContained && (
-          <div className="safety-box" role="note">
-            <h3>Already contained</h3>
-            <p>If it is already safely contained, keep it quiet, dark, secure, and ventilated without moving or disturbing it. Do not feed, give water, medicate, or treat it; ask a qualified professional for directions.</p>
-          </div>
-        )}
-        {route.outcome === 'holding' && (
-          <div className="safety-box" role="note">
-            <h3>Keep this limited and temporary</h3>
-            <p>Prioritize contacting a licensed professional immediately. Guidance here is non-treatment: minimize disturbance and keep people and pets away. Do not handle, feed, give water, use medicine, or take other treatment steps.</p>
-          </div>
-        )}
-        {route.outcome !== 'observe' && (
+        {route.outcome === 'professional' && (
           <div style={{ marginTop: 14 }}>
             <RehabilitatorDirectory
               county={encounter.county}
@@ -363,7 +400,7 @@ function App() {
   const [formStartStep, setFormStartStep] = useState(0);
 
   useEffect(() => {
-    if (screen === 'result') scrollPageToTop();
+    if (screen === 'result' || screen === 'clarify') scrollPageToTop();
   }, [screen]);
 
   const start = () => {
@@ -374,7 +411,10 @@ function App() {
   };
   const startDemo = (answers: Encounter) => {
     setEncounter({ ...answers, actions: [...answers.actions] });
-    setScreen('result');
+    setScreen(routeEncounter(answers).outcome === 'clarify' ? 'clarify' : 'result');
+  };
+  const routeToNextStep = (answers: Encounter) => {
+    setScreen(routeEncounter(answers).outcome === 'clarify' ? 'clarify' : 'result');
   };
   const editAnswer = (index: number) => {
     setFormStartStep(index);
@@ -395,7 +435,15 @@ function App() {
           startStep={formStartStep}
         />
       )}
-      {screen === 'review' && <Review encounter={encounter} onEdit={editAnswer} onBack={() => setScreen('form')} onShowResult={() => setScreen('result')} />}
+      {screen === 'review' && <Review encounter={encounter} onEdit={editAnswer} onBack={() => setScreen('form')} onShowResult={() => routeToNextStep(encounter)} />}
+      {screen === 'clarify' && (
+        <Clarification
+          encounter={encounter}
+          onAnswer={(field, value) => setEncounter((current) => ({ ...current, [field]: value }))}
+          onResolved={() => setScreen('result')}
+          onBack={() => setScreen('review')}
+        />
+      )}
       {screen === 'result' && (
         <Result
           encounter={encounter}
