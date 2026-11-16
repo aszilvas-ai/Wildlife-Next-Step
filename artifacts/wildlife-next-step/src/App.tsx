@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import heroArtwork from '@assets/wildlife_banner_cleaned.png';
 import { ArrowLeft, ArrowRight, Check, ChevronRight, CircleAlert, RotateCcw, ShieldCheck } from 'lucide-react';
 import { SiteHeader, PrototypeNotice, Progress } from './components/SiteHeader';
-import { RehabilitatorDirectory } from './components/RehabilitatorDirectory';
+import { RehabilitatorDirectory, UrgentAfterHoursGuidance } from './components/RehabilitatorDirectory';
 import { SourcesPanel } from './components/ReferencePanel';
 import { demos, emptyEncounter, fieldOptions, fieldTitles, formatAnswer, type Encounter, type OutcomeId } from './data/scenarios';
 import { getRehabilitatorsForCounty } from './logic/contactDirectory';
-import { getMissingRequiredFields, isInjuredOrUrgentConcern, isUrgentConcern, MORE_INFORMATION_NEEDED_MESSAGE, requiredAnswerFields, routeEncounter, type RequiredAnswerField } from './logic/ruleEngine';
+import { getMissingRequiredFields, isInjuredOrUrgentConcern, isUncertainAnswer, isUrgentConcern, MORE_INFORMATION_NEEDED_MESSAGE, requiredAnswerFields, routeEncounter, type RequiredAnswerField } from './logic/ruleEngine';
 
 type Screen = 'home' | 'form' | 'review' | 'moreInfo' | 'result';
 
@@ -31,6 +31,17 @@ const fieldHelp: Record<FormField, string> = {
   condition: 'Choose only what is already described. Do not approach to check for weakness, coldness, or distress.',
   parentSeen: 'If no parent or adult animal was seen, one may still be nearby. Not seeing one does not by itself trigger professional contact.',
   actions: 'Choose all that apply. Select “No action yet” if nothing has been done.',
+};
+const uncertaintyHints: Record<FormField, string> = {
+  timeOfDay: 'Choose an approximate time if you can. If not, keep “Not sure”; the time does not confirm provider availability.',
+  animal: 'Choose the closest category only if it fits. “Unknown” is okay; the result will preserve that uncertainty instead of guessing.',
+  appearance: 'Use only details already given in the scenario. Do not approach to inspect the animal.',
+  injury: 'Do not approach to check. Keep “Not sure” if the injury is unknown; it will not be treated as no injury.',
+  movement: 'Do not test the animal or move closer. Keep “Not sure” if movement has not been observed.',
+  danger: 'Do not approach to check. Keep “Not sure” if the surrounding danger is unknown.',
+  condition: 'Do not approach to check. Keep “Not sure” if weakness, coldness, or distress is unknown.',
+  parentSeen: 'Not seeing a parent does not mean one is absent. Keep “Not sure” if you cannot tell; this alone does not trigger contact.',
+  actions: 'Select only actions you know happened. “Other / not sure” is okay and does not change the safety route by itself.',
 };
 const fieldStepTitles: Record<FormField, string> = {
   timeOfDay: 'What part of the day is it?',
@@ -187,6 +198,7 @@ function FormFlow({
 }) {
   const [step, setStep] = useState(startStep);
   const key = fields[step];
+  const hasUncertainAnswer = isUncertainAnswer(encounter[key]);
   const goNext = () => {
     if (step === fields.length - 1) onReview();
     else setStep(step + 1);
@@ -212,9 +224,19 @@ function FormFlow({
           multiple={key === 'actions'}
           testPrefix={`option-${key}`}
         />
+        {hasUncertainAnswer && (
+          <div className="uncertainty-hint" role="status" data-testid={`uncertainty-hint-${key}`}>
+            <strong>It’s okay to be unsure.</strong> {uncertaintyHints[key]} Choose another answer above to try again, or continue with uncertainty.
+          </div>
+        )}
         <div className="form-nav">
           <button className="btn btn-quiet" type="button" onClick={back} data-testid="button-back"><ArrowLeft size={16} />{step === 0 ? 'Cancel' : 'Back'}</button>
-          <button className="btn btn-primary" type="button" onClick={goNext} data-testid="button-continue">{step === fields.length - 1 ? 'Review answers' : 'Continue'}<ArrowRight size={16} /></button>
+          <button className="btn btn-primary" type="button" onClick={goNext} data-testid="button-continue">
+            {hasUncertainAnswer
+              ? (step === fields.length - 1 ? 'Review with uncertainty' : 'Continue with uncertainty')
+              : (step === fields.length - 1 ? 'Review answers' : 'Continue')}
+            <ArrowRight size={16} />
+          </button>
         </div>
       </section>
       <p style={{ color: '#6b7569', fontSize: '.8rem', textAlign: 'center', marginTop: 18 }}>Fictional classroom practice only · answers stay in this active screen</p>
@@ -237,7 +259,7 @@ function Review({
       <section className="form-card">
         <div className="step-kicker"><ShieldCheck size={16} /> YOUR FICTIONAL ANSWERS</div>
         <h1 className="step-title">Take a moment to review.</h1>
-        <p className="step-help">You can change any answer. The routing rules use only these in-memory responses.</p>
+        <p className="step-help">You can change any answer. If you continue with an important answer uncertain, the next screen will show what is still unknown instead of suggesting a path.</p>
         <div className="review-list">
           {fields.map((field, index) => (
             <div
@@ -274,6 +296,7 @@ function MoreInformationNeeded({
   onReview: () => void;
 }) {
   const missingFields = getMissingRequiredFields(encounter);
+  const uncertainFields = missingFields.filter((field) => isUncertainAnswer(encounter[field]));
 
   return (
     <main className="shell flow-wrap">
@@ -283,6 +306,11 @@ function MoreInformationNeeded({
         <p className="result-sub more-info-message" data-testid="more-information-message">{MORE_INFORMATION_NEEDED_MESSAGE}</p>
         <section className="result-panel more-info-fields" aria-labelledby="missing-fields-title">
           <h2 id="missing-fields-title">Answer the marked questions</h2>
+          {uncertainFields.length > 0 && (
+            <p className="uncertainty-result" data-testid="uncertainty-result">
+              You continued while unsure about {uncertainFields.map((field) => fieldTitles[field]).join(', ')}. This prototype will not suggest a specific path until those important details are known.
+            </p>
+          )}
           <div className="review-list">
             {missingFields.map((field) => (
               <div className="review-row needs-answer" key={field} data-testid={`missing-field-${field}`}>
@@ -294,7 +322,7 @@ function MoreInformationNeeded({
               </div>
             ))}
           </div>
-          <p className="step-help more-info-help">A missing or unknown answer is not a reason by itself to contact a rehabilitator. If you cannot provide the requested details, restart with more information.</p>
+          <p className="step-help more-info-help">It’s okay to remain unsure. You can go back and try again, or keep the uncertainty here; it is not a reason by itself to contact a rehabilitator.</p>
         </section>
         <div className="form-nav">
           <button className="btn btn-quiet" type="button" onClick={onRestart} data-testid="button-restart"><RotateCcw size={16} /> Start over</button>
@@ -319,6 +347,9 @@ function Result({
   const contacts = encounter.county ? getRehabilitatorsForCounty(encounter.county) : [];
   const urgentConcern = isUrgentConcern(encounter);
   const injuryOrUrgentConcern = isInjuredOrUrgentConcern(encounter);
+  const uncertainContext = fields
+    .filter((field) => isUncertainAnswer(encounter[field]))
+    .map((field) => `${fieldTitles[field]}: ${formatAnswer(field, encounter[field])}`);
   return (
     <main className="shell flow-wrap">
       <section className="form-card" aria-labelledby="result-title">
@@ -343,6 +374,12 @@ function Result({
           <div className="urgent-guidance-message" role="alert" data-testid="urgent-status">
             <span className="urgent-status-badge">URGENT</span>
             <span>This animal may need professional help. Wildlife Next Step cannot diagnose the injury or determine whether waiting is safe.</span>
+          </div>
+        )}
+        {urgentConcern && <UrgentAfterHoursGuidance />}
+        {uncertainContext.length > 0 && (
+          <div className="uncertainty-result final-uncertainty-result" role="note" data-testid="result-uncertainty">
+            <strong>Uncertainty retained:</strong> {uncertainContext.join('; ')}. These details are not treated as evidence of an injury or a need to contact a rehabilitator.
           </div>
         )}
         <div className="result-layout">

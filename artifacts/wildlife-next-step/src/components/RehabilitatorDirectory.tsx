@@ -130,6 +130,40 @@ function ProviderCard({
   );
 }
 
+export function UrgentAfterHoursGuidance() {
+  return (
+    <section className="urgent-after-hours-top" aria-labelledby="urgent-after-hours-top-title" data-testid="urgent-after-hours-guidance">
+      <div className="urgent-after-hours-top-heading">
+        <span className="urgent-status-badge">URGENT</span>
+        <h2 id="urgent-after-hours-top-title">Urgent after-hours steps</h2>
+      </div>
+      <p className="urgent-after-hours-top-intro">
+        This animal may need help soon. Wildlife Next Step cannot determine whether waiting is safe or provide treatment instructions.
+      </p>
+      <ol className="after-hours-guidance urgent-after-hours-top-list" aria-label="Urgent after-hours actions">
+        <li>
+          <strong>Contact a matching permitted rehabilitator.</strong> Use a current DNR listing whose published coverage includes this animal, and confirm it serves the county. Follow its listed contact method and leave a detailed message if available. A response is not guaranteed.
+        </li>
+        <li>
+          <strong>Check another option if needed.</strong> Contact another matching wildlife rehabilitator. If considering a local 24-hour veterinary emergency option, call first to confirm it currently treats wildlife.
+        </li>
+        <li>
+          <strong>Keep people and pets away if it is safe.</strong> Do not approach, capture, handle, feed, medicate, or treat the animal. Follow only temporary instructions given directly by a qualified provider.
+        </li>
+        <li>
+          <strong>Protect people first.</strong> If a person is in immediate danger, move to safety and contact emergency services. Do not approach wildlife.
+        </li>
+      </ol>
+      <a className="directory-link" href={directorySource.url} target="_blank" rel="noreferrer">
+        Search the current statewide DNR directory <ExternalLink size={14} aria-hidden="true" />
+      </a>
+      <p className="urgent-after-hours-limit" role="note">
+        The directory does not confirm live availability. This app cannot diagnose the animal, guarantee help is available, or determine whether waiting is safe.
+      </p>
+    </section>
+  );
+}
+
 export function RehabilitatorDirectory({
   county,
   contacts,
@@ -332,22 +366,10 @@ export function RehabilitatorDirectory({
       {injuryOrUrgentConcern && (
         <section className="after-hours-section urgent-after-hours-entry" aria-labelledby="urgent-after-hours-entry-title" data-testid="urgent-after-hours-entry">
           <h3 id="urgent-after-hours-entry-title">{urgentConcern ? 'Urgent after-hours situation' : 'If a provider is closed or does not answer'}</h3>
-          {urgentConcern && (
-            <div className="urgent-after-hours-summary">
-              <p role="alert" data-testid="urgent-after-hours-summary">
-                <strong>Urgent after-hours situation:</strong> This animal may need help soon. Call a rehabilitator whose published listing covers this animal and leave a detailed message; if its listing specifies another contact method, use that method. Then check another matching wildlife contact or a local 24-hour veterinary emergency option. If it is safe, keep people and pets away from the animal and follow only temporary instructions given directly by the provider. Wildlife Next Step cannot determine whether waiting is safe or provide treatment instructions.
-              </p>
-              <ol className="after-hours-guidance urgent-action-list" aria-label="Urgent actions">
-                <li><strong>Call and leave a detailed message.</strong> Call a matching rehabilitator from the list above. If none is shown, use the <a href={directorySource.url} target="_blank" rel="noreferrer">current statewide DNR directory</a> to find one whose published coverage includes this animal, and confirm it serves the county. Leave a voicemail if available; if the listing is text-only or names another contact method, use that. Include the animal type, county and nearby landmark (not an exact address), what you observed, when you noticed it, and an adult callback number. A response is not guaranteed.</li>
-                <li><strong>Check another wildlife or veterinary option.</strong> Find another rehabilitator whose published coverage includes this animal and confirm directly that it serves the county. If considering a local 24-hour veterinary emergency option, call first to confirm it currently treats wildlife; this app does not verify a local emergency clinic.</li>
-                <li><strong>Reduce immediate risks if it is safe.</strong> Keep people and pets away without approaching or moving the animal. Do not try to capture or handle it.</li>
-                <li><strong>Do not attempt treatment.</strong> Do not feed, medicate, or provide medical care. Follow only temporary instructions given directly by a qualified provider.</li>
-                <li><strong>Protect people first.</strong> If a person is in immediate danger, move to safety and contact emergency services. Do not approach wildlife.</li>
-              </ol>
-            </div>
-          )}
           <p className="after-hours-message-note">
-            {matchingContacts.length
+            {urgentConcern
+              ? 'The urgent steps are shown near the top of this result. Use the controls here to open the detailed provider-specific plan.'
+              : matchingContacts.length
               ? 'Choose from the matching county listings above. Use a listing’s button only after you have confirmed it is closed or has not answered.'
               : 'No matching listing is confirmed for this animal and county. Open the plan for general safety steps and the current statewide directory.'}
           </p>

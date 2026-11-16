@@ -3,7 +3,7 @@ import test from 'node:test';
 import { directorySource, rehabilitators } from '../src/data/contacts.ts';
 import { demos, fieldOptions } from '../src/data/scenarios.ts';
 import { getCountiesForAnimal, getRehabilitatorsForAnimal, getRehabilitatorsForCounty, getVerifiedAfterHoursOption, noConfirmedAfterHoursServiceMessage } from '../src/logic/contactDirectory.ts';
-import { getMissingRequiredFields, isInjuredOrUrgentConcern, isUrgentConcern, MORE_INFORMATION_NEEDED_MESSAGE, requiredAnswerFields, routeEncounter } from '../src/logic/ruleEngine.ts';
+import { getMissingRequiredFields, isInjuredOrUrgentConcern, isUncertainAnswer, isUrgentConcern, MORE_INFORMATION_NEEDED_MESSAGE, requiredAnswerFields, routeEncounter } from '../src/logic/ruleEngine.ts';
 
 test('the DNR directory lookup returns the published contacts for a selected county', () => {
   const monroeContacts = getRehabilitatorsForCounty('Monroe');
@@ -139,6 +139,24 @@ test('no visible injury and uncertainty are not mislabeled as urgent injury repo
   assert.equal(isUrgentConcern({ injury: 'Not sure' }), false);
   assert.equal(isInjuredOrUrgentConcern({ injury: 'No visible injury' }), false);
   assert.equal(isInjuredOrUrgentConcern({ injury: 'Not sure' }), false);
+});
+
+test('uncertainty remains explicit without being treated as evidence for professional contact', () => {
+  assert.equal(isUncertainAnswer('Not sure'), true);
+  assert.equal(isUncertainAnswer('Unknown'), true);
+  assert.equal(isUncertainAnswer('Unclear / not sure'), true);
+  assert.equal(isUncertainAnswer(['Observed from a distance', 'Other / not sure']), true);
+  assert.equal(isUncertainAnswer('Moving normally'), false);
+
+  const scenario = demos.find((demo) => demo.id === 'healthy-squirrel');
+  assert.ok(scenario);
+  const uncertainContext = {
+    ...scenario.answers,
+    timeOfDay: 'Not sure',
+    appearance: 'Unclear / not sure',
+    actions: ['Other / not sure'],
+  };
+  assert.equal(routeEncounter(uncertainContext).outcome, 'observe');
 });
 
 test('an unknown time period does not cause professional contact or make claims about contact hours', () => {

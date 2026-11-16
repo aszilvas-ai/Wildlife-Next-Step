@@ -67,6 +67,11 @@ const validRequiredAnswers: Record<RequiredAnswerField, Set<string>> = {
 const answerIs = (value: string, answers: Set<string>) =>
   answers.has(value.trim().toLowerCase());
 
+export function isUncertainAnswer(answer: string | string[]): boolean {
+  const values = Array.isArray(answer) ? answer : [answer];
+  return values.some((value) => /\b(?:not sure|unknown|unclear)\b/i.test(value));
+}
+
 export function isYoungAnimal(encounter: Pick<Encounter, 'appearance'>): boolean {
   return /young|baby|juvenile|little fur|eyes closed/i.test(encounter.appearance);
 }

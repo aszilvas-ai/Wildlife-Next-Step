@@ -103,6 +103,8 @@ button { cursor: pointer; }
 .option-title { display:block;font-weight:700; }
 .option-desc { display:block;color:#68756a;font-size:.8rem;margin-top:4px; }
 .form-nav { display:flex;justify-content:space-between;align-items:center;margin-top:32px;gap:10px; }
+.uncertainty-hint { margin-top:16px;padding:14px 16px;border-left:4px solid #b98534;border-radius:0 12px 12px 0;background:#f4ead7;color:#55431f;font-size:.88rem;line-height:1.6; }
+.uncertainty-hint strong { display:block;margin-bottom:3px; }
 .review-list { display:grid;gap:8px; }
 .review-row { display:grid;grid-template-columns:1fr auto;gap:15px;align-items:center;padding:14px 15px;background:#f3efe3;border-radius:12px; }
 .review-row.needs-answer { background:#fff0ec;border:1px solid #d6a294; }
@@ -113,6 +115,8 @@ button { cursor: pointer; }
 .more-info-message { margin:10px 0 22px;font-weight:600; }
 .more-info-fields h2 { margin:0 0 14px;font-size:1.05rem; }
 .more-info-help { margin:16px 0 0; }
+.uncertainty-result { margin:0 0 16px;padding:14px 16px;border-left:4px solid #b98534;border-radius:0 12px 12px 0;background:#f4ead7;color:#55431f;font-size:.9rem;line-height:1.6; }
+.final-uncertainty-result { margin-top:16px; }
 .result-head { display:flex;gap:14px;align-items:flex-start;margin-bottom:24px; }
 .result-icon { display:grid;place-items:center;flex:0 0 48px;width:48px;height:48px;border-radius:16px;background:#e5eddf;color:#31583f;font-size:1.3rem;font-weight:700; }
 .result-title { font:600 clamp(1.8rem,3.6vw,2.7rem)/1.08 var(--app-font-serif);margin:0 0 7px;letter-spacing:-.035em; }
@@ -139,6 +143,14 @@ button { cursor: pointer; }
 .professional-guidance-message { margin:16px 0 0;padding:15px 17px;border-left:4px solid #b98534;border-radius:0 13px 13px 0;background:#f4e9d5;color:#543f1d;font-weight:700;line-height:1.55; }
 .urgent-guidance-message { display:flex;align-items:flex-start;gap:11px;margin:14px 0 0;padding:15px 17px;border:1px solid #d88d7d;border-left:4px solid #b43d2d;border-radius:0 13px 13px 0;background:#f9e7e2;color:#682b22;font-size:.92rem;font-weight:750;line-height:1.55; }
 .urgent-status-badge { display:inline-flex;flex:0 0 auto;align-items:center;padding:4px 9px;border-radius:999px;background:#a83225;color:#fff;font-size:.7rem;font-weight:900;letter-spacing:.1em; }
+.urgent-after-hours-top { margin-top:16px;padding:20px;border:1px solid #d88d7d;border-left:5px solid #b43d2d;border-radius:0 16px 16px 0;background:#fff6f2;color:#592b23; }
+.urgent-after-hours-top-heading { display:flex;align-items:center;gap:10px;flex-wrap:wrap; }
+.urgent-after-hours-top-heading h2 { margin:0;color:#592b23;font:600 1.28rem var(--app-font-serif); }
+.urgent-after-hours-top-intro { margin:12px 0 14px;color:inherit;font-size:.9rem;font-weight:700;line-height:1.6; }
+.urgent-after-hours-top-list { color:#592b23; }
+.urgent-after-hours-top-list li { padding-left:2px; }
+.urgent-after-hours-top .directory-link { margin-top:15px; }
+.urgent-after-hours-top .urgent-after-hours-limit { margin-bottom:0; }
 .after-hours-card { margin:0;border:1px solid #c49a52;border-radius:20px;overflow:hidden;background:#f7f5ef;box-shadow:0 12px 30px rgba(37,56,75,.09); }
 .after-hours-header { display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start;padding:22px 23px;background:#263b50;color:#f8f3e7; }
 .after-hours-moon { width:42px;height:42px;border:1px solid rgba(236,195,111,.55);border-radius:50%;display:grid;place-items:center;background:rgba(221,177,89,.15);color:#edc46f; }
