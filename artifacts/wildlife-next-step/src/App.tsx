@@ -32,7 +32,7 @@ const fieldHelp: Record<FormField, string> = {
   timeOfDay: 'Choose the closest time period. It helps the practice route but does not confirm provider availability.',
   animal: 'Choose the closest category or best guess. If you select “Unknown,” the app will ask for more information before suggesting a path.',
   appearance: 'Only select what the scenario tells you. Do not approach to check.',
-  injury: 'Do not get closer to assess. Select only what is already described. “Not sure” will be marked as needing more information.',
+  injury: 'Use only details already described. “Not sure” is a valid choice; continue without guessing.',
   movement: 'Choose only what is already known. Do not approach to test the animal’s movement.',
   danger: 'Choose only what is already known. Do not approach or try to move the animal.',
   condition: 'Choose only what is already described. Do not approach to check for weakness, coldness, or distress.',
@@ -43,7 +43,7 @@ const uncertaintyHints: Record<FormField, string> = {
   timeOfDay: 'Choose an approximate time if you can. If not, keep “Not sure”; the time does not confirm provider availability.',
   animal: 'Choose the closest category only if it fits. “Unknown” is okay; the result will preserve that uncertainty instead of guessing.',
   appearance: 'Use only details already given in the scenario. Do not approach to inspect the animal.',
-  injury: 'Do not approach to check. Keep “Not sure” if the injury is unknown; it will not be treated as no injury.',
+  injury: 'Do not approach to check. Keep “Not sure” if the injury is unknown; it is not the same as no injury.',
   movement: 'Do not test the animal or move closer. Keep “Not sure” if movement has not been observed.',
   danger: 'Do not approach to check. Keep “Not sure” if the surrounding danger is unknown.',
   condition: 'Do not approach to check. Keep “Not sure” if weakness, coldness, or distress is unknown.',
@@ -275,22 +275,30 @@ function Review({
         <h1 className="step-title">Take a moment to review.</h1>
         <p className="step-help">You can change any answer. If you continue with an important answer uncertain, the next screen will show what is still unknown instead of suggesting a path.</p>
         <div className="review-list">
-          {fields.map((field) => (
-            <div
-              className={`review-row${requiredAnswerFields.includes(field as RequiredAnswerField) && missingFields.has(field as RequiredAnswerField) ? ' needs-answer' : ''}`}
-              key={field}
-              data-testid={`review-row-${field}`}
-            >
-              <div>
-                <span>{fieldTitles[field]}</span>
-                <strong>{formatAnswer(field, encounter[field])}</strong>
-                {requiredAnswerFields.includes(field as RequiredAnswerField) && missingFields.has(field as RequiredAnswerField) && (
-                  <em className="missing-answer-badge">Needs a meaningful answer</em>
-                )}
+          {fields.map((field) => {
+            const missingRequiredAnswer =
+              requiredAnswerFields.includes(field as RequiredAnswerField)
+              && missingFields.has(field as RequiredAnswerField);
+            const markedUnsure = missingRequiredAnswer && isUncertainAnswer(encounter[field]);
+            return (
+              <div
+                className={`review-row${markedUnsure ? ' marked-unsure' : missingRequiredAnswer ? ' needs-answer' : ''}`}
+                key={field}
+                data-testid={`review-row-${field}`}
+              >
+                <div>
+                  <span>{fieldTitles[field]}</span>
+                  <strong>{formatAnswer(field, encounter[field])}</strong>
+                  {missingRequiredAnswer && (
+                    <em className={markedUnsure ? 'uncertain-answer-badge' : 'missing-answer-badge'}>
+                      {markedUnsure ? 'Marked unsure, okay to leave unknown.' : 'Needs a meaningful answer'}
+                    </em>
+                  )}
+                </div>
+                <button className="review-edit" onClick={() => onEdit(field)} data-testid={`button-edit-${field}`}>Edit</button>
               </div>
-              <button className="review-edit" onClick={() => onEdit(field)} data-testid={`button-edit-${field}`}>Edit</button>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <div className="form-nav">
           <button className="btn btn-quiet" onClick={onBack} data-testid="button-review-back"><ArrowLeft size={16} /> Back to form</button>
@@ -326,15 +334,18 @@ function MoreInformationNeeded({
             </p>
           )}
           <div className="review-list">
-            {missingFields.map((field) => (
-              <div className="review-row needs-answer" key={field} data-testid={`missing-field-${field}`}>
+          {missingFields.map((field) => {
+            const markedUnsure = isUncertainAnswer(encounter[field]);
+            return (
+              <div className={`review-row${markedUnsure ? ' marked-unsure' : ' needs-answer'}`} key={field} data-testid={`missing-field-${field}`}>
                 <div>
-                  <span>{fieldTitles[field]} · needs an answer</span>
+                  <span>{fieldTitles[field]} · {markedUnsure ? 'marked unsure, okay to leave unknown' : 'needs a meaningful answer'}</span>
                   <strong>{formatAnswer(field, encounter[field])}</strong>
                 </div>
-                <button className="review-edit" onClick={() => onEdit(field)} data-testid={`button-answer-${field}`}>Answer</button>
+                <button className="review-edit" onClick={() => onEdit(field)} data-testid={`button-answer-${field}`}>{markedUnsure ? 'Change answer' : 'Answer'}</button>
               </div>
-            ))}
+            );
+          })}
           </div>
           <p className="step-help more-info-help">It’s okay to remain unsure. You can go back and try again, or keep the uncertainty here; it is not a reason by itself to contact a rehabilitator.</p>
         </section>
