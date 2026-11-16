@@ -319,13 +319,19 @@ function MoreInformationNeeded({
 }) {
   const missingFields = getMissingRequiredFields(encounter);
   const uncertainFields = missingFields.filter((field) => isUncertainAnswer(encounter[field]));
+  const blankFields = missingFields.filter((field) => !isUncertainAnswer(encounter[field]));
+  const message = blankFields.length === 0
+    ? 'It is okay to leave an answer marked unsure or unknown rather than guess. This prototype cannot suggest a supported path while important details remain unknown.'
+    : uncertainFields.length === 0
+      ? MORE_INFORMATION_NEEDED_MESSAGE
+      : 'Please provide meaningful answers for the blank questions if you know them. Answers marked unsure or unknown can remain that way rather than guessing; this prototype will not suggest a path while important details remain unknown.';
 
   return (
     <main className="shell flow-wrap">
       <section className="form-card" aria-labelledby="more-info-title">
         <div className="step-kicker"><CircleAlert size={16} /> INPUT CHECK</div>
         <h1 className="result-title" id="more-info-title" data-testid="result-title">More information needed</h1>
-        <p className="result-sub more-info-message" data-testid="more-information-message">{MORE_INFORMATION_NEEDED_MESSAGE}</p>
+        <p className="result-sub more-info-message" data-testid="more-information-message">{message}</p>
         <section className="result-panel more-info-fields" aria-labelledby="missing-fields-title">
           <h2 id="missing-fields-title">Answer the marked questions</h2>
           {uncertainFields.length > 0 && (
