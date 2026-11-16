@@ -30,4 +30,13 @@
 
 3. The prototype does not save a user’s progress or past results. If a user refreshes the page or leaves the app, they must start the wildlife scenario again. A later version could save a practice session or let a teacher review completed scenarios.
 
+PROJECT PROTOTYPE REVISIONS
 
+## 2. Response to Peer Feedback
+
+| Feedback or observed issue | Decision | What changed, or why it was deferred |
+| --- | --- | --- |
+| Selecting “Not sure” led to a message asking for a better answer, and the peer could not continue. | Acted on | I added a clue for the question and a way to continue without guessing. Important unknown answers are identified in the result. |
+| The question flow felt long toward the end. | Adapted | I grouped the nine questions into four screens. I kept the individual questions because they collect different details relevant to the result. This reduces the number of screens, although it does not reduce the number of questions. |
+| The urgent after-hours guidance appeared below a long section of contact information in the bleeding-squirrel result. | Acted on | I moved the urgent after-hours guidance above the county and provider listings so it is easier to find. |
+| The result explained why it recommended a route, and the examples and checklists were helpful. | Kept | I kept the explanations, examples, and checklists because they help students understand the reasoning behind a practice result. |
