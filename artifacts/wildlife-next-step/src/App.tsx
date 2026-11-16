@@ -21,6 +21,13 @@ function scrollPageToTop() {
 type FormField = Exclude<keyof Encounter, 'county'>;
 
 const fields: FormField[] = ['timeOfDay', 'animal', 'appearance', 'injury', 'movement', 'danger', 'condition', 'parentSeen', 'actions'];
+const formSteps: { title: string; fields: FormField[] }[] = [
+  { title: 'Set the scene', fields: ['timeOfDay', 'animal'] },
+  { title: 'Describe what is visible', fields: ['appearance', 'parentSeen'] },
+  { title: 'Check for injury or movement problems', fields: ['injury', 'movement'] },
+  { title: 'Check other immediate safety concerns', fields: ['danger', 'condition'] },
+  { title: 'What has happened so far?', fields: ['actions'] },
+];
 const fieldHelp: Record<FormField, string> = {
   timeOfDay: 'Choose the closest time period. It helps the practice route but does not confirm provider availability.',
   animal: 'Choose the closest category or best guess. If you select “Unknown,” the app will ask for more information before suggesting a path.',
@@ -197,14 +204,14 @@ function FormFlow({
   startStep: number;
 }) {
   const [step, setStep] = useState(startStep);
-  const key = fields[step];
-  const hasUncertainAnswer = isUncertainAnswer(encounter[key]);
+  const currentStep = formSteps[step];
+  const hasUncertainAnswer = currentStep.fields.some((field) => isUncertainAnswer(encounter[field]));
   const goNext = () => {
-    if (step === fields.length - 1) onReview();
+    if (step === formSteps.length - 1) onReview();
     else setStep(step + 1);
   };
-  const update = (value: string | string[]) => {
-    setEncounter({ ...encounter, [key]: value });
+  const update = (field: FormField, value: string | string[]) => {
+    setEncounter({ ...encounter, [field]: value });
   };
   const back = () => {
     if (step === 0) onCancel();
@@ -212,29 +219,36 @@ function FormFlow({
   };
   return (
     <main className="shell flow-wrap">
-      <Progress step={step + 1} total={fields.length} />
+      <Progress step={step + 1} total={formSteps.length} />
       <section className="form-card" aria-labelledby="step-title">
-        <div className="step-kicker"><span>STEP {step + 1}</span><span aria-hidden="true">·</span><span>{fieldTitles[key]}</span></div>
-        <h1 className="step-title" id="step-title">{fieldStepTitles[key]}</h1>
-        <p className="step-help">{fieldHelp[key]}</p>
-        <OptionGroup
-          options={fieldOptions[key] as string[]}
-          value={encounter[key]}
-          onChange={update}
-          multiple={key === 'actions'}
-          testPrefix={`option-${key}`}
-        />
-        {hasUncertainAnswer && (
-          <div className="uncertainty-hint" role="status" data-testid={`uncertainty-hint-${key}`}>
-            <strong>It’s okay to be unsure.</strong> {uncertaintyHints[key]} Choose another answer above to try again, or continue with uncertainty.
-          </div>
-        )}
+        <div className="step-kicker"><span>STEP {step + 1} OF {formSteps.length}</span><span aria-hidden="true">·</span><span>{currentStep.fields.length} {currentStep.fields.length === 1 ? 'question' : 'questions'}</span></div>
+        <h1 className="step-title" id="step-title">{currentStep.title}</h1>
+        <div className="form-question-groups">
+          {currentStep.fields.map((field) => (
+            <fieldset className="form-question-group" key={field} data-testid={`question-group-${field}`}>
+              <legend className="form-question-title">{fieldStepTitles[field]}</legend>
+              <p className="step-help">{fieldHelp[field]}</p>
+              <OptionGroup
+                options={fieldOptions[field] as string[]}
+                value={encounter[field]}
+                onChange={(value) => update(field, value)}
+                multiple={field === 'actions'}
+                testPrefix={`option-${field}`}
+              />
+              {isUncertainAnswer(encounter[field]) && (
+                <div className="uncertainty-hint" role="status" data-testid={`uncertainty-hint-${field}`}>
+                  <strong>It’s okay to be unsure.</strong> {uncertaintyHints[field]} Choose another answer above to try again, or continue with uncertainty.
+                </div>
+              )}
+            </fieldset>
+          ))}
+        </div>
         <div className="form-nav">
           <button className="btn btn-quiet" type="button" onClick={back} data-testid="button-back"><ArrowLeft size={16} />{step === 0 ? 'Cancel' : 'Back'}</button>
           <button className="btn btn-primary" type="button" onClick={goNext} data-testid="button-continue">
             {hasUncertainAnswer
-              ? (step === fields.length - 1 ? 'Review with uncertainty' : 'Continue with uncertainty')
-              : (step === fields.length - 1 ? 'Review answers' : 'Continue')}
+              ? (step === formSteps.length - 1 ? 'Review with uncertainty' : 'Continue with uncertainty')
+              : (step === formSteps.length - 1 ? 'Review answers' : 'Continue')}
             <ArrowRight size={16} />
           </button>
         </div>
@@ -248,7 +262,7 @@ function Review({
   encounter, onEdit, onBack, onShowResult,
 }: {
   encounter: Encounter;
-  onEdit: (step: number) => void;
+  onEdit: (field: FormField) => void;
   onBack: () => void;
   onShowResult: () => void;
 }) {
@@ -261,7 +275,7 @@ function Review({
         <h1 className="step-title">Take a moment to review.</h1>
         <p className="step-help">You can change any answer. If you continue with an important answer uncertain, the next screen will show what is still unknown instead of suggesting a path.</p>
         <div className="review-list">
-          {fields.map((field, index) => (
+          {fields.map((field) => (
             <div
               className={`review-row${requiredAnswerFields.includes(field as RequiredAnswerField) && missingFields.has(field as RequiredAnswerField) ? ' needs-answer' : ''}`}
               key={field}
@@ -274,7 +288,7 @@ function Review({
                   <em className="missing-answer-badge">Needs a meaningful answer</em>
                 )}
               </div>
-              <button className="review-edit" onClick={() => onEdit(index)} data-testid={`button-edit-${field}`}>Edit</button>
+              <button className="review-edit" onClick={() => onEdit(field)} data-testid={`button-edit-${field}`}>Edit</button>
             </div>
           ))}
         </div>
@@ -439,8 +453,8 @@ function App() {
   const routeToNextStep = (answers: Encounter) => {
     setScreen(routeEncounter(answers).outcome === 'moreInfo' ? 'moreInfo' : 'result');
   };
-  const editAnswer = (index: number) => {
-    setFormStartStep(index);
+  const editAnswer = (field: FormField) => {
+    setFormStartStep(formSteps.findIndex((step) => step.fields.includes(field)));
     setScreen('form');
   };
 
@@ -462,7 +476,7 @@ function App() {
       {screen === 'moreInfo' && (
         <MoreInformationNeeded
           encounter={encounter}
-          onEdit={(field) => editAnswer(fields.indexOf(field))}
+          onEdit={(field) => editAnswer(field)}
           onRestart={start}
           onReview={() => setScreen('review')}
         />

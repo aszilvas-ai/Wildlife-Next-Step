@@ -7,4 +7,4 @@ Base professional-contact recommendations on reported safety concerns, not anima
 
 **Why:** The user wants students to be able to continue without pretending they know an answer, while keeping unresolved information from producing a confident route or an automatic contact recommendation.
 
-**How to apply:** Preserve this distinction in rule changes, form questions, demos, and tests. Show a question-specific clue when a user is unsure, keep the answer explicitly uncertain, and provide a clear way to continue to a non-recommendation result. For young wildlife, do not treat a parent not being seen by itself as a reason to recommend contact.
+**How to apply:** Preserve this distinction in rule changes, form questions, demos, and tests. Show a question-specific clue when a user is unsure, keep the answer explicitly uncertain, and provide a clear way to continue to a non-recommendation result. When reducing flow steps, group related prompts on the same screen but preserve separate answers and never drop required safety questions. For young wildlife, do not treat a parent not being seen by itself as a reason to recommend contact.
