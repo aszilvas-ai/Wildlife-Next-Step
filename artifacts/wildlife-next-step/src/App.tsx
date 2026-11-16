@@ -379,7 +379,7 @@ function Result({
           <h3>Why this route?</h3>
           <p>{route.reason}</p>
         </div>
-        {route.outcome === 'professional' && (
+        {route.outcome === 'professional' && !urgentConcern && (
           <p className="professional-guidance-message" role="note" data-testid="professional-guidance">
             This situation needs professional guidance. The app cannot safely provide treatment instructions.
           </p>
