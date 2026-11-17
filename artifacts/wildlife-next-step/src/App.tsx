@@ -355,6 +355,15 @@ function MoreInformationNeeded({
           </div>
           <p className="step-help more-info-help">It’s okay to remain unsure. You can go back and try again, or keep the uncertainty here; it is not a reason by itself to contact a rehabilitator.</p>
         </section>
+        {encounter.injury === 'Not sure' && (
+          <section className="result-panel still-unsure-panel" aria-labelledby="still-unsure-title" data-testid="still-unsure-guidance">
+            <h2 id="still-unsure-title">If you still can’t tell</h2>
+            <p>It’s okay to leave the injury answer as “Not sure.” Stay at a safe distance; do not approach, touch, move, or closely inspect the animal. Ask a trusted adult or a permitted wildlife rehabilitator for guidance.</p>
+            <p>These official Indiana DNR resources can help you find wildlife guidance and the permitted rehabilitator directory. A listing does not confirm that anyone is available.</p>
+            <SourcesPanel title="Official Indiana wildlife resources" officialOnly />
+            <p className="step-help more-info-help">If you already have more information, use “Change answer” above or review your answers. You do not need to guess.</p>
+          </section>
+        )}
         <div className="form-nav">
           <button className="btn btn-quiet" type="button" onClick={onRestart} data-testid="button-restart"><RotateCcw size={16} /> Start over</button>
           <button className="btn btn-primary" type="button" onClick={onReview} data-testid="button-more-info-review">Review all answers <ArrowRight size={16} /></button>
