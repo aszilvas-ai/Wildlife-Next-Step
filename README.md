@@ -59,10 +59,25 @@ The cases below use fictional information. The tests review the Wildlife Next St
 
 Before the revision, a peer selected “Not sure” and received a message asking for a better answer. They could not continue with that choice, even though it was an available option.
 
-After the revision, I selected “Not sure” for the injury question. The prototype allowed me to continue without guessing. The result showed “More information needed” and included an “If you still can’t tell” section. It explained that the user could leave the answer unknown, stay at a safe distance, and ask a trusted adult or permitted wildlife rehabilitator for guidance. It also displayed links to official Indiana wildlife resources. This is important because someone may not be able to tell whether an animal is injured and should not need to approach it or guess to continue.
+After the revision, I selected “Not sure” for the injury question. The prototype allowed me to continue without guessing. The result showed “More information needed” and included an “If you still can’t tell” section. It explained that the user could leave the answer unknown, stay at a safe distance, and ask a trusted adult or permitted wildlife rehabilitator for guidance. It also displayed links to official Indiana wildlife resources. This is important because someone may not be able to tell whether an animal is injured and should not need to approach it or guess to continue. </br>
+<p align="center"> <img width="589.5" height="327" alt="Screenshot 2026-11-17 at 9 10 36 PM" src="https://github.com/user-attachments/assets/0ce30ee6-a7d7-4624-b905-e3cc7ecf3408" /> </p>
 
 ### What the Evidence Tells Me
 
-The built-in examples show different results for a normally moving squirrel and a squirrel with visible bleeding. The revised flow also gives the user guidance when the injury status remains unknown and updates the result when an injury answer is changed. These checks support the idea that the prototype can help students practice thinking through fictional wildlife situations, but they do not prove its guidance is reliable for real situations or that a future AI model would be accurate.
+The revised prototype lets users try a built-in fictional wildlife scenario or enter details for one of their own. Users can review their answers and receive a result based on the information they provide. If someone selects “Not sure,” they can continue, but the final result explains that the website needs more information before it can suggest a specific next step. It also gives them guidance if they still cannot tell whether the animal is injured.
 
-Next, I would independently repeat the blank-answer test, test more combinations of answers, and ask another student to try the five-screen flow. The prototype displays links to external resources, but their current availability and provider availability were not verified in this test.
+When the result suggests professional help, the prototype shows contact information for wildlife rehabilitators whose listed animal coverage matches the animal entered. The contacts come from the Indiana DNR directory, but the prototype does not confirm times they are available.
+
+The tests suggest that the idea could help people who find an animal and want to help but do not know what to do. For now, the prototype is only for fictional practice, and I have not tested enough situations or users to know how reliable and clear it is in every case. To improve it, I would ask a real wildlife rehabilitator whether this process would be helpful to them and what changes they would recommend.
+
+### Concrete Risk
+
+One risk is that someone might rush through the questions or guess answers just to see who they can call. If the answers do not reflect the situation, the prototype could suggest contacting a wildlife rehabilitator when it may not be necessary. This could add to rehabilitators’ workloads. 
+
+To address this risk, the prototype allows users to select “Not sure” rather than guess. If an important answer is unknown, it explains that it needs more information before suggesting a specific next step, but it also offers guidance. Users can review and edit their answers before seeing a result. If they still cannot tell whether an animal is injured, the prototype gives them guidance without asking them to approach the animal.
+
+In my test, I selected “Not sure” for the injury question. The prototype allowed me to continue, explained why it could not suggest a specific path, and provided guidance for someone who still could not tell whether the animal was injured. This safeguard works through programmed rules in the prototype, not a live AI model.
+
+The safeguard reduces pressure to guess, but it does not prevent someone from rushing or choosing inaccurate answers. It also does not confirm whether a rehabilitator is available. This risk relates to over-reliance on AI because users still need to think carefully about the information they provide. In the future, I would ask a wildlife rehabilitator whether the process and its recommendations would be helpful or could create unnecessary work.
+
+
