@@ -194,13 +194,14 @@ function OptionGroup({
 }
 
 function FormFlow({
-  encounter, setEncounter, onCancel, onReview,
+  encounter, setEncounter, onCancel, onReview, isEditingAnswer,
   startStep,
 }: {
   encounter: Encounter;
   setEncounter: (value: Encounter) => void;
   onCancel: () => void;
   onReview: () => void;
+  isEditingAnswer: boolean;
   startStep: number;
 }) {
   const [step, setStep] = useState(startStep);
@@ -245,6 +246,11 @@ function FormFlow({
         </div>
         <div className="form-nav">
           <button className="btn btn-quiet" type="button" onClick={back} data-testid="button-back"><ArrowLeft size={16} />{step === 0 ? 'Cancel' : 'Back'}</button>
+          {isEditingAnswer && (
+            <button className="btn btn-quiet" type="button" onClick={onReview} data-testid="button-save-answer-review">
+              <Check size={16} /> Save answer and return to review
+            </button>
+          )}
           <button className="btn btn-primary" type="button" onClick={goNext} data-testid="button-continue">
             {hasUncertainAnswer
               ? (step === formSteps.length - 1 ? 'Review with uncertainty' : 'Continue with uncertainty')
@@ -461,6 +467,7 @@ function App() {
   const [screen, setScreen] = useState<Screen>('home');
   const [encounter, setEncounter] = useState<Encounter>({ ...emptyEncounter, actions: [] });
   const [formStartStep, setFormStartStep] = useState(0);
+  const [isEditingAnswer, setIsEditingAnswer] = useState(false);
 
   useEffect(() => {
     if (screen === 'result' || screen === 'moreInfo') scrollPageToTop();
@@ -470,10 +477,12 @@ function App() {
     scrollPageToTop();
     setEncounter({ ...emptyEncounter, actions: [] });
     setFormStartStep(0);
+    setIsEditingAnswer(false);
     setScreen('form');
   };
   const startDemo = (answers: Encounter) => {
     setEncounter({ ...answers, actions: [...answers.actions] });
+    setIsEditingAnswer(false);
     setScreen(routeEncounter(answers).outcome === 'moreInfo' ? 'moreInfo' : 'result');
   };
   const routeToNextStep = (answers: Encounter) => {
@@ -481,6 +490,7 @@ function App() {
   };
   const editAnswer = (field: FormField) => {
     setFormStartStep(formSteps.findIndex((step) => step.fields.includes(field)));
+    setIsEditingAnswer(true);
     setScreen('form');
   };
 
@@ -495,6 +505,7 @@ function App() {
           setEncounter={setEncounter}
           onCancel={() => setScreen('home')}
           onReview={() => setScreen('review')}
+          isEditingAnswer={isEditingAnswer}
           startStep={formStartStep}
         />
       )}
