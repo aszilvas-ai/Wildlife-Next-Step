@@ -166,7 +166,13 @@ export function RehabilitatorDirectory({
   contacts,
   timeOfDay,
   animalType,
+  appearance,
   injuryConcern,
+  movement,
+  danger,
+  condition,
+  parentSeen,
+  actions,
   injuryOrUrgentConcern,
   urgentConcern,
   onCountyChange,
@@ -175,7 +181,13 @@ export function RehabilitatorDirectory({
   contacts: RehabilitatorContact[];
   timeOfDay: string;
   animalType: string;
+  appearance: string;
   injuryConcern: string;
+  movement: string;
+  danger: string;
+  condition: string;
+  parentSeen: string;
+  actions: string[];
   injuryOrUrgentConcern: boolean;
   urgentConcern: boolean;
   onCountyChange: (county: string) => void;
@@ -196,13 +208,24 @@ export function RehabilitatorDirectory({
   const animalDescription = animalType && animalType !== 'Unknown' ? animalType.toLowerCase() : 'this animal';
   const afterHoursOption = afterHoursContact ? getVerifiedAfterHoursOption(afterHoursContact) : null;
   const afterHoursPlanOpen = Boolean(afterHoursContact || generalPlanOpen);
+  const answerOrUnknown = (answer: string) => answer.trim() || 'Unknown / not provided';
+  const parentAnswer = parentSeen.startsWith('No')
+    ? `${answerOrUnknown(parentSeen)}; this does not confirm the animal is orphaned`
+    : answerOrUnknown(parentSeen);
   const messageTemplate = [
     `To: ${afterHoursContact?.organization || afterHoursContact?.name || '[selected rehabilitator]'}`,
-    `Animal type: ${animalType || '[animal type]'}`,
-    `Approximate location: ${county ? `${county} County, near [landmark; no exact address]` : '[county and nearby landmark; no exact address]'}`,
-    'Approximate time noticed: [approximate time]',
-    `Concern already observed: ${injuryConcern || '[brief concern]'}`,
-    ...(urgentConcern ? ['Urgency: This animal may need help soon'] : []),
+    'I’m contacting you for guidance based on these reported answers:',
+    `Animal type: ${answerOrUnknown(animalType)}`,
+    `Approximate location: ${county ? `${county} County, near [landmark; no exact address]` : 'Unknown / not provided; no exact address'}`,
+    `Approximate time noticed: ${answerOrUnknown(timeOfDay)}`,
+    `Size and appearance: ${answerOrUnknown(appearance)}`,
+    `Injury or urgent concern reported: ${answerOrUnknown(injuryConcern)}`,
+    `Movement: ${answerOrUnknown(movement)}`,
+    `Surrounding safety: ${answerOrUnknown(danger)}`,
+    `Weakness, coldness, or distress: ${answerOrUnknown(condition)}`,
+    `Parent or adult animal seen: ${parentAnswer}`,
+    `Actions already taken: ${actions.length ? actions.join('; ') : 'Unknown / not provided'}`,
+    'What guidance do you recommend?',
     'Adult callback number: [adult callback number]',
   ].join('\n');
   const handleCountyChange = (nextCounty: string) => {

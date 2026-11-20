@@ -444,7 +444,13 @@ function Result({
               contacts={contacts}
               timeOfDay={encounter.timeOfDay}
               animalType={encounter.animal}
+              appearance={encounter.appearance}
               injuryConcern={encounter.injury}
+              movement={encounter.movement}
+              danger={encounter.danger}
+              condition={encounter.condition}
+              parentSeen={encounter.parentSeen}
+              actions={encounter.actions}
               injuryOrUrgentConcern={injuryOrUrgentConcern}
               urgentConcern={urgentConcern}
               onCountyChange={onCountyChange}
