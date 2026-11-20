@@ -39,7 +39,7 @@
 | Feedback or observed issue | Decision | What changed, or why it was deferred |
 | --- | --- | --- |
 | Selecting “Not sure” led to a message asking for a better answer, and the peer could not continue. | Acted on | I added a clue for the question and a way to continue without guessing. Important unknown answers are identified in the result. |
-| The question flow felt long toward the end. | Adapted | I grouped the nine questions into four screens. I kept the individual questions because they collect different details relevant to the result. This reduces the number of screens, although it does not reduce the number of questions. |
+| The question flow felt long toward the end. | Adapted | I grouped the nine questions into five screens. I kept the individual questions because they collect different details relevant to the result. This reduces the number of screens, although it does not reduce the number of questions. |
 | The urgent after-hours guidance appeared below a long section of contact information in the bleeding-squirrel result. | Acted on | I moved the urgent after-hours guidance above the county and provider listings so it is easier to find. |
 | The result explained why it recommended a route, and the examples and checklists were helpful. | Kept | I kept the explanations, examples, and checklists because they help students understand the reasoning behind a practice result. |
 
@@ -79,5 +79,24 @@ To address this risk, the prototype allows users to select “Not sure” rather
 In my test, I selected “Not sure” for the injury question. The prototype allowed me to continue, explained why it could not suggest a specific path, and provided guidance for someone who still could not tell whether the animal was injured. This safeguard works through programmed rules in the prototype, not a live AI model.
 
 The safeguard reduces pressure to guess, but it does not prevent someone from rushing or choosing inaccurate answers. It also does not confirm whether a rehabilitator is available. This risk relates to over-reliance on AI because users still need to think carefully about the information they provide. In the future, I would ask a wildlife rehabilitator whether the process and its recommendations would be helpful or could create unnecessary work.
+
+### AI-Use Disclosure
+
+- Tools used: I used ChatGPT and the Replit Agent while developing Wildlife Next Step.
+
+- Development assistance: ChatGPT helped me craft prompts for Replit based on peer feedback, organize my test results into table form, fix a bug that was crashing my website, and revise my demo script.
+
+- Representative prompts:
+1. I asked Replit to improve the “Not sure” experience so a user could continue without guessing. It added a clue, allowed the user to continue with uncertainty, and showed “More information needed” when an important answer was unknown. I then asked for more guidance for someone who still could not tell whether the animal was injured.
+
+2. I asked Replit to make the question flow feel shorter while keeping questions needed for a cautious result. It grouped the questions into five screens instead of nine while keeping the individual questions.
+
+3. I asked Replit to make the urgent step guidance easier to find by moving it to the top of the page. It moved the guidance higher on the result page, above the provider listings.
+
+- Human judgment: An earlier AI-produced version recommended showing “More information needed” when the injury status was unknown. I felt that this was incomplete because someone might not be able to tell whether the animal was injured without getting closer. I asked Replit to add guidance for someone who remains unsure, including staying at a safe distance and finding wildlife resources. I made this change so users would have a way forward without feeling they needed to guess or approach the animal.
+
+- Verification: I used Indiana DNR resources to check the wildlife guidance and rehabilitator information used in the prototype. I also tested fictional scenarios to see whether the results matched the information entered. The prototype links to official resources so users can check the guidance themselves. I still need to confirm that the directory information is current and ask a permitted wildlife rehabilitator to review the questions, suggested next steps, and safety guidance. The prototype has not yet been validated for real wildlife encounters.
+
+- AI inside the product: The intended role of AI is to interpret a user’s description of a wildlife situation, identify important details, and help determine what follow-up questions are needed. The input would be the user’s description and answers, and the output would help organize that information before the app suggests a next step. The current prototype does not use a live AI model. It uses preset questions, programmed rules, and prepared responses. 
 
 
