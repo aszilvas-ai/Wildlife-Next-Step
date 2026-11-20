@@ -422,7 +422,6 @@ function Result({
             <span>This animal may need professional help. Wildlife Next Step cannot diagnose the injury or determine whether waiting is safe.</span>
           </div>
         )}
-        {urgentConcern && <UrgentAfterHoursGuidance />}
         {uncertainContext.length > 0 && (
           <div className="uncertainty-result final-uncertainty-result" role="note" data-testid="result-uncertainty">
             <strong>Uncertainty retained:</strong> {uncertainContext.join('; ')}. These details are not treated as evidence of an injury or a need to contact a rehabilitator.
@@ -452,6 +451,7 @@ function Result({
             />
           </div>
         )}
+        {urgentConcern && <UrgentAfterHoursGuidance />}
         <div style={{ marginTop: 14 }}><SourcesPanel /></div>
         <div className="result-actions">
           <button className="btn btn-primary" onClick={onRestart} data-testid="button-restart"><RotateCcw size={16} /> Start over</button>

@@ -135,7 +135,7 @@ export function UrgentAfterHoursGuidance() {
     <section className="urgent-after-hours-top" aria-labelledby="urgent-after-hours-top-title" data-testid="urgent-after-hours-guidance">
       <div className="urgent-after-hours-top-heading">
         <span className="urgent-status-badge">URGENT</span>
-        <h2 id="urgent-after-hours-top-title">Urgent after-hours steps</h2>
+        <h2 id="urgent-after-hours-top-title">If you cannot reach a rehabilitator, follow these steps:</h2>
       </div>
       <p className="urgent-after-hours-top-intro">
         This animal may need help soon. Wildlife Next Step cannot determine whether waiting is safe or provide treatment instructions.
