@@ -87,11 +87,11 @@ The safeguard reduces pressure to guess, but it does not prevent someone from ru
 - Development assistance: ChatGPT helped me craft prompts for Replit based on peer feedback, organize my test results into table form, fix a bug that was crashing my website, and revise my demo script.
 
 - Representative prompts:
-1. I asked Replit to improve the “Not sure” experience so a user could continue without guessing. It added a clue, allowed the user to continue with uncertainty, and showed “More information needed” when an important answer was unknown. I then asked for more guidance for someone who still could not tell whether the animal was injured.
+  1. I asked Replit to improve the “Not sure” experience so a user could continue without guessing. It added a clue, allowed the user to continue with uncertainty, and showed “More information needed” when an important answer was unknown. I then asked for more guidance for someone who still could not tell whether the animal was injured.
 
-2. I asked Replit to make the question flow feel shorter while keeping questions needed for a cautious result. It grouped the questions into five screens instead of nine while keeping the individual questions.
+  2. I asked Replit to make the question flow feel shorter while keeping questions needed for a cautious result. It grouped the questions into five screens instead of nine while keeping the individual questions.
 
-3. I asked Replit to make the urgent step guidance easier to find by moving it to the top of the page. It moved the guidance higher on the result page, above the provider listings.
+  3. I asked Replit to make the urgent step guidance easier to find by moving it to the top of the page. It moved the guidance higher on the result page, above the provider listings.
 
 - Human judgment: An earlier AI-produced version recommended showing “More information needed” when the injury status was unknown. I felt that this was incomplete because someone might not be able to tell whether the animal was injured without getting closer. I asked Replit to add guidance for someone who remains unsure, including staying at a safe distance and finding wildlife resources. I made this change so users would have a way forward without feeling they needed to guess or approach the animal.
 
