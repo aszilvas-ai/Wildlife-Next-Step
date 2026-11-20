@@ -135,11 +135,8 @@ export function UrgentAfterHoursGuidance() {
     <section className="urgent-after-hours-top" aria-labelledby="urgent-after-hours-top-title" data-testid="urgent-after-hours-guidance">
       <div className="urgent-after-hours-top-heading">
         <span className="urgent-status-badge">URGENT</span>
-        <h2 id="urgent-after-hours-top-title">If you cannot reach a rehabilitator, follow these steps:</h2>
+        <h2 id="urgent-after-hours-top-title">If you cannot reach a rehabilitator, follow these steps</h2>
       </div>
-      <p className="urgent-after-hours-top-intro">
-        This animal may need help soon. Wildlife Next Step cannot determine whether waiting is safe or provide treatment instructions.
-      </p>
       <ol className="after-hours-guidance urgent-after-hours-top-list" aria-label="Urgent after-hours actions">
         <li>
           <strong>Contact a matching permitted rehabilitator.</strong> Use a current DNR listing whose published coverage includes this animal, and confirm it serves the county. Follow its listed contact method and leave a detailed message if available. A response is not guaranteed.
