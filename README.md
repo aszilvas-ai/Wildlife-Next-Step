@@ -99,4 +99,6 @@ The safeguard reduces pressure to guess, but it does not prevent someone from ru
 
 - AI inside the product: The intended role of AI is to interpret a user’s description of a wildlife situation, identify important details, and help determine what follow-up questions are needed. The input would be the user’s description and answers, and the output would help organize that information before the app suggests a next step. The current prototype does not use a live AI model. It uses preset questions, programmed rules, and prepared responses. 
 
+### Demo Video
+https://drive.google.com/file/d/1GguX459hDstPiqbONhojLd0theSnia8l/view?usp=sharing
 
